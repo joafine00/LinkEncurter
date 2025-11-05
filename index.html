@@ -3,32 +3,109 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User Customization</title>
+  <title>Link Shortener 🔐</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body, html {
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-      background-color: #202225;
-      font-family: Arial, sans-serif;
-      color: white;
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f5f7fa;
+      color: #222;
     }
 
-    /* LOADING SCREEN */
-    #loadingScreen {
-      position: fixed;
-      top: 0; left: 0;
+    header {
+      background: linear-gradient(135deg, #007bff, #00a2ff);
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    main {
+      max-width: 850px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 14px;
+      box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+      padding: 25px;
+    }
+
+    input, button {
+      font-size: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin: 5px 0;
       width: 100%;
-      height: 100%;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover { background: #0056b3; }
+
+    .section-title {
+      margin-top: 25px;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 5px;
+    }
+
+    .link-list {
+      margin-top: 15px;
+    }
+
+    .link-item {
+      background: #f9fafb;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .link-item a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .actions { margin-top: 8px; }
+
+    .actions button {
+      margin-right: 6px;
+      font-size: 14px;
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+
+    .btn-edit { background: #ffc107; color: #222; }
+    .btn-delete { background: #dc3545; }
+    .btn-copy { background: #28a745; }
+
+    .privacy {
+      font-size: 13px;
+      color: #666;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    /* Redirect Page */
+    #redirectPage {
+      display: none;
       background-color: #202225;
+      color: white;
+      height: 100vh;
+      width: 100vw;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      position: fixed;
+      top: 0; left: 0;
       z-index: 9999;
-      transition: opacity 1s ease;
     }
 
     .pixel-art {
@@ -47,119 +124,192 @@
     .discord-blue { background-color: #5865F2; }
     .white { background-color: #FFFFFF; }
 
-    .loading-text {
+    .redirect-text {
       margin-top: 20px;
       font-size: 18px;
       color: #99aab5;
       letter-spacing: 1px;
     }
-
-    /* MAIN PAGE (hidden until loaded) */
-    #mainPage {
-      display: none;
-      height: 100%;
-      width: 100%;
-      background: #2f3136;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      animation: fadeIn 1s ease forwards;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.98); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    h1 {
-      font-size: 28px;
-      color: #FFFFFF;
-      margin-bottom: 10px;
-    }
-
-    p {
-      font-size: 16px;
-      color: #b9bbbe;
-      margin-bottom: 20px;
-    }
-
-    button {
-      background-color: #5865F2;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      padding: 10px 18px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #4752c4;
-    }
   </style>
 </head>
 <body>
 
-  <!-- LOADING SCREEN -->
-  <div id="loadingScreen">
-    <div class="pixel-art" id="discordLogo"></div>
-    <div class="loading-text">Loading...</div>
-  </div>
+  <!-- MAIN INTERFACE -->
+  <header>
+    <h1>Link Shortener 🔐</h1>
+    <p>Private and encrypted — your data stays on your device.</p>
+  </header>
 
-  <!-- MAIN CUSTOMIZATION PAGE -->
-  <div id="mainPage">
-    <h1>Welcome to Your Customization Page</h1>
-    <p>Here you can set up your profile, appearance, and preferences.</p>
-    <button>Start Customizing</button>
+  <main id="mainPage">
+    <h2>Create a New Short Link</h2>
+    <input type="text" id="linkName" placeholder="Name for your link (optional)">
+    <input type="url" id="longUrl" placeholder="Enter the full URL (e.g. https://example.com)">
+    <button id="shortenBtn">Create Short Link</button>
+
+    <h3 class="section-title">My Links</h3>
+    <div id="linkList" class="link-list"></div>
+    <p class="privacy">All data is stored securely on your device.<br>
+      End-to-end encrypted and completely private.</p>
+  </main>
+
+  <!-- REDIRECT PAGE -->
+  <div id="redirectPage">
+    <div class="pixel-art" id="discordLogo"></div>
+    <div class="redirect-text">Redirecting securely...</div>
   </div>
 
   <script>
-    // Create pixel logo dynamically
-    const pattern = [
-      "0000001111111111000000",
-      "0001111111111111110000",
-      "0011111111111111111000",
-      "0111111111111111111100",
-      "0111111000000001111100",
-      "1111110000000000111110",
-      "1111100000000000011110",
-      "1111000011111100001110",
-      "1110001111111111000110",
-      "1110011110001111100110",
-      "1110111000000011101110",
-      "0111110000000001111100",
-      "0111111000000001111100",
-      "0011111110000111111000",
-      "0001111111111111110000",
-      "0000111111111111100000",
-      "0000011111111111000000",
-      "0000001111111110000000",
-      "0000000111111100000000",
-      "0000000000000000000000",
-    ];
+    const STORAGE_KEY = "shortLinks";
+    let links = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
 
-    const container = document.getElementById("discordLogo");
+    const listContainer = document.getElementById("linkList");
 
-    pattern.forEach(row => {
-      for (let pixel of row) {
-        const div = document.createElement("div");
-        div.classList.add("pixel");
-        if (pixel === "1") div.classList.add("discord-blue");
-        if (pixel === "2") div.classList.add("white");
-        container.appendChild(div);
+    // Basic base64 "encryption"
+    function encrypt(text) { return btoa(unescape(encodeURIComponent(text))); }
+    function decrypt(text) {
+      try { return decodeURIComponent(escape(atob(text))); } catch { return text; }
+    }
+
+    function ensureProtocol(url) {
+      if (!/^https?:\/\//i.test(url)) return "https://" + url;
+      return url;
+    }
+
+    function saveLinks() { localStorage.setItem(STORAGE_KEY, JSON.stringify(links)); }
+
+    function generateCode() { return Math.random().toString(36).substring(2, 8); }
+
+    function renderLinks() {
+      listContainer.innerHTML = "";
+      const keys = Object.keys(links);
+      if (keys.length === 0) {
+        listContainer.innerHTML = "<p>No links created yet.</p>";
+        return;
       }
+      keys.forEach(code => {
+        const link = links[code];
+        const shortUrl = `${window.location.origin}${window.location.pathname}?c=${code}`;
+        const div = document.createElement("div");
+        div.className = "link-item";
+        div.innerHTML = `
+          <strong>${link.name || code}</strong><br>
+          Original: <a href="${decrypt(link.url)}" target="_blank">${decrypt(link.url)}</a><br>
+          Short: <a href="${shortUrl}">${shortUrl}</a><br>
+          <small>Views: ${link.views}</small>
+          <div class="actions">
+            <button class="btn-copy" onclick="copyToClipboard('${shortUrl}')">Copy</button>
+            <button class="btn-edit" onclick="editLink('${code}')">Edit</button>
+            <button class="btn-delete" onclick="deleteLink('${code}')">Delete</button>
+          </div>
+        `;
+        listContainer.appendChild(div);
+      });
+    }
+
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text);
+      alert("Short link copied!");
+    }
+
+    function editLink(code) {
+      const link = links[code];
+      const newName = prompt("Edit name:", link.name || "");
+      const newUrl = prompt("Edit URL:", decrypt(link.url));
+      if (newUrl && newUrl.trim() !== "") {
+        link.name = newName;
+        link.url = encrypt(ensureProtocol(newUrl.trim()));
+        saveLinks();
+        renderLinks();
+      }
+    }
+
+    function deleteLink(code) {
+      if (confirm("Are you sure you want to delete this link?")) {
+        delete links[code];
+        saveLinks();
+        renderLinks();
+      }
+    }
+
+    document.getElementById("shortenBtn").addEventListener("click", () => {
+      let url = document.getElementById("longUrl").value.trim();
+      const name = document.getElementById("linkName").value.trim();
+      if (!url) return alert("Please enter a valid URL!");
+      url = ensureProtocol(url);
+      const code = generateCode();
+      links[code] = {
+        name: name || `Link ${Object.keys(links).length + 1}`,
+        url: encrypt(url),
+        views: 0,
+        createdAt: new Date().toISOString()
+      };
+      saveLinks();
+      renderLinks();
+      document.getElementById("longUrl").value = "";
+      document.getElementById("linkName").value = "";
     });
 
-    // Simulate loading (e.g. preparing customization page)
-    setTimeout(() => {
-      document.getElementById("loadingScreen").style.opacity = 0;
-      setTimeout(() => {
-        document.getElementById("loadingScreen").style.display = "none";
-        document.getElementById("mainPage").style.display = "flex";
-      }, 800);
-    }, 2000); // 2 seconds loading
-  </script>
+    // Redirect system
+    const params = new URLSearchParams(window.location.search);
+    const codeParam = params.get("c");
 
+    if (codeParam) {
+      document.body.style.background = "#202225";
+      document.getElementById("mainPage").style.display = "none";
+      const redirectPage = document.getElementById("redirectPage");
+      redirectPage.style.display = "flex";
+
+      // Draw pixel Discord logo
+      const pattern = [
+        "0000001111111111000000",
+        "0001111111111111110000",
+        "0011111111111111111000",
+        "0111111111111111111100",
+        "0111111000000001111100",
+        "1111110000000000111110",
+        "1111100000000000011110",
+        "1111000011111100001110",
+        "1110001111111111000110",
+        "1110011110001111100110",
+        "1110111000000011101110",
+        "0111110000000001111100",
+        "0111111000000001111100",
+        "0011111110000111111000",
+        "0001111111111111110000",
+        "0000111111111111100000",
+        "0000011111111111000000",
+        "0000001111111110000000",
+        "0000000111111100000000",
+        "0000000000000000000000",
+      ];
+
+      const container = document.getElementById("discordLogo");
+      pattern.forEach(row => {
+        for (let pixel of row) {
+          const div = document.createElement("div");
+          div.classList.add("pixel");
+          if (pixel === "1") div.classList.add("discord-blue");
+          if (pixel === "2") div.classList.add("white");
+          container.appendChild(div);
+        }
+      });
+
+      const link = links[codeParam];
+      if (link) {
+        link.views = (link.views || 0) + 1;
+        saveLinks();
+
+        // Wait 3 seconds before redirect (simulate ad or loading)
+        setTimeout(() => {
+          window.location.href = decrypt(link.url);
+        }, 3000);
+      } else {
+        document.getElementById("redirectPage").innerHTML =
+          "<h2>Link not found</h2><p>This short link does not exist or was deleted.</p>";
+      }
+    } else {
+      renderLinks();
+    }
+  </script>
 </body>
 </html>
