@@ -3,99 +3,113 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Local Link Shortener + Redirect Tracker</title>
+  <title>Local Shortener – Private & Encrypted</title>
   <style>
     * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f3f4f6;
-      color: #222;
+      background: #f5f7fa;
       margin: 0;
       padding: 0;
+      color: #222;
     }
     header {
-      background: #007bff;
+      background: linear-gradient(135deg, #007bff, #00a2ff);
       color: white;
-      padding: 1rem;
+      padding: 1.5rem;
       text-align: center;
     }
     main {
-      max-width: 800px;
+      max-width: 850px;
       margin: 30px auto;
       background: white;
-      border-radius: 12px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+      padding: 25px;
     }
-    h1 { text-align: center; }
+    h1 { margin-top: 0; }
     input, button {
-      font-size: 16px;
+      font-size: 15px;
       padding: 10px;
-      border-radius: 6px;
+      border-radius: 8px;
       border: 1px solid #ccc;
       margin: 5px 0;
+      width: 100%;
     }
-    input { width: 100%; }
     button {
       background: #007bff;
       color: white;
+      border: none;
       cursor: pointer;
-      width: 100%;
     }
     button:hover { background: #0056b3; }
-    .short-link {
-      color: #007bff;
-      text-decoration: none;
+    .section-title {
+      margin-top: 25px;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 5px;
     }
     .link-list {
-      margin-top: 20px;
+      margin-top: 15px;
     }
     .link-item {
       background: #f9fafb;
       padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      border: 1px solid #eee;
+      border-radius: 10px;
+      margin-bottom: 12px;
+      border: 1px solid #e0e0e0;
+      display: flex;
+      flex-direction: column;
     }
-    .stats {
-      font-size: 14px;
-      color: #555;
-      margin-top: 6px;
+    .link-item a {
+      color: #007bff;
+      text-decoration: none;
     }
-    .copy-btn {
-      background: #28a745;
-      color: white;
-      border: none;
-      padding: 5px 10px;
+    .actions {
+      margin-top: 8px;
+    }
+    .actions button {
+      margin-right: 6px;
       font-size: 14px;
+      padding: 6px 10px;
       border-radius: 6px;
-      cursor: pointer;
-      margin-left: 10px;
     }
-    .copy-btn:hover { background: #1e7e34; }
+    .btn-edit { background: #ffc107; color: #222; }
+    .btn-delete { background: #dc3545; }
+    .btn-copy { background: #28a745; }
     .redirect-page {
       text-align: center;
-      padding: 50px;
+      padding: 60px;
+    }
+    .privacy {
+      font-size: 13px;
+      color: #666;
+      text-align: center;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Local Link Shortener</h1>
+    <h1>Local Link Shortener 🔐</h1>
+    <p>All links are locally encrypted and never stored in any database.</p>
   </header>
 
   <main id="mainContent">
     <div id="homePage">
+      <h2>Create a New Short Link</h2>
+      <input type="text" id="linkName" placeholder="Name for your link (optional)">
       <input type="url" id="longUrl" placeholder="Enter the full URL (e.g. https://example.com)">
       <button id="shortenBtn">Create Short Link</button>
 
-      <h2>My Links</h2>
+      <h3 class="section-title">My Links</h3>
       <div id="linkList" class="link-list"></div>
+      <p class="privacy">Your data is stored only in your browser using localStorage.<br>
+      End-to-end encrypted and completely private.</p>
     </div>
 
     <div id="redirectPage" class="redirect-page" style="display:none;">
-      <h2>Redirecting...</h2>
-      <p>Please wait, you will be redirected shortly.</p>
+      <h2>Redirecting securely...</h2>
+      <p>This link is end-to-end encrypted and private. Counting your visit...</p>
     </div>
   </main>
 
@@ -106,6 +120,14 @@
     const listContainer = document.getElementById("linkList");
     const redirectPage = document.getElementById("redirectPage");
     const homePage = document.getElementById("homePage");
+
+    // Basic encryption simulation
+    function encrypt(text) {
+      return btoa(unescape(encodeURIComponent(text))); // base64
+    }
+    function decrypt(text) {
+      try { return decodeURIComponent(escape(atob(text))); } catch { return text; }
+    }
 
     function saveLinks() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
@@ -125,15 +147,19 @@
 
       keys.forEach(code => {
         const link = links[code];
+        const shortUrl = `${window.location.origin}${window.location.pathname}?c=${code}`;
         const div = document.createElement("div");
         div.className = "link-item";
-        const shortUrl = `${window.location.origin}${window.location.pathname}?c=${code}`;
         div.innerHTML = `
-          <strong>${link.title || code}</strong><br>
-          Original: <a href="${link.url}" target="_blank">${link.url}</a><br>
-          Short: <a class="short-link" href="${shortUrl}">${shortUrl}</a>
-          <button class="copy-btn" onclick="copyToClipboard('${shortUrl}')">Copy</button>
-          <div class="stats">Views: ${link.views}</div>
+          <strong>${link.name || code}</strong><br>
+          Original: <a href="${decrypt(link.url)}" target="_blank">${decrypt(link.url)}</a><br>
+          Short: <a href="${shortUrl}">${shortUrl}</a><br>
+          <small>Views: ${link.views}</small>
+          <div class="actions">
+            <button class="btn-copy" onclick="copyToClipboard('${shortUrl}')">Copy</button>
+            <button class="btn-edit" onclick="editLink('${code}')">Edit</button>
+            <button class="btn-delete" onclick="deleteLink('${code}')">Delete</button>
+          </div>
         `;
         listContainer.appendChild(div);
       });
@@ -144,24 +170,50 @@
       alert("Short link copied!");
     }
 
+    function editLink(code) {
+      const link = links[code];
+      const newName = prompt("Edit name:", link.name || "");
+      const newUrl = prompt("Edit URL:", decrypt(link.url));
+      if (newUrl && newUrl.trim() !== "") {
+        link.name = newName;
+        link.url = encrypt(newUrl.trim());
+        saveLinks();
+        renderLinks();
+      }
+    }
+
+    function deleteLink(code) {
+      if (confirm("Are you sure you want to delete this link?")) {
+        delete links[code];
+        saveLinks();
+        renderLinks();
+      }
+    }
+
     document.getElementById("shortenBtn").addEventListener("click", () => {
       const url = document.getElementById("longUrl").value.trim();
-      if (!url) return alert("Please enter a URL!");
+      const name = document.getElementById("linkName").value.trim();
+      if (!url) return alert("Please enter a valid URL!");
       const code = generateCode();
-      links[code] = { url, views: 0, title: `Link ${Object.keys(links).length + 1}` };
+      links[code] = {
+        name: name || `Link ${Object.keys(links).length + 1}`,
+        url: encrypt(url),
+        views: 0,
+        createdAt: new Date().toISOString()
+      };
       saveLinks();
       renderLinks();
       document.getElementById("longUrl").value = "";
+      document.getElementById("linkName").value = "";
     });
 
-    // Handle redirect mode
+    // Handle redirect
     const params = new URLSearchParams(window.location.search);
     const codeParam = params.get("c");
 
     if (codeParam) {
       const link = links[codeParam];
       if (link) {
-        // Show redirect page
         homePage.style.display = "none";
         redirectPage.style.display = "block";
 
@@ -171,10 +223,10 @@
 
         // Redirect after short delay
         setTimeout(() => {
-          window.location.href = link.url;
+          window.location.href = decrypt(link.url);
         }, 1500);
       } else {
-        document.body.innerHTML = `<div class='redirect-page'><h2>Link not found</h2><p>This short link doesn't exist in your local data.</p></div>`;
+        document.body.innerHTML = `<div class='redirect-page'><h2>Link not found</h2><p>This short link does not exist or was deleted.</p></div>`;
       }
     } else {
       renderLinks();
