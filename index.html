@@ -81,7 +81,7 @@ input{
 <div class="main" id="mainApp">
   <div class="topbar">
     <h1 id="pageTitle">Dashboard</h1>
-    <div id="statsDisplay">0 / ∞ links</div>
+    <div id="statsDisplay">0 / 10 links</div>
   </div>
   <div class="content">
     
@@ -105,8 +105,8 @@ input{
       <h2>About LinkShort</h2>
       <p>LinkShort is a privacy-first, ad-free link shortener that stores all your data locally using LocalStorage.</p>
       <p>No ads. No servers. Everything stays in your browser.</p>
-      <p>Create, manage, and redirect links directly — your data never leaves your device.</p>
-      <p>Unlimited links, limited only by your browser’s local storage capacity.</p>
+      <p>You can create up to <strong>10 links per account</strong>, stored locally in your browser’s memory.</p>
+      <p>Your links, names, and view counts remain private and accessible only to you on this device.</p>
     </div>
 
   </div>
@@ -140,9 +140,10 @@ const sidebarLinks=document.querySelectorAll('.sidebar a');
 const pageTitle=document.getElementById('pageTitle');
 const statsDisplay=document.getElementById('statsDisplay');
 let links=JSON.parse(localStorage.getItem('links')||'[]');
+const maxLinks=10;
 
 function updateStats(){
-  statsDisplay.textContent=`${links.length} / ∞ links`;
+  statsDisplay.textContent=`${links.length} / ${maxLinks} links`;
 }
 updateStats();
 
@@ -169,6 +170,10 @@ document.getElementById('createBtn').addEventListener('click',()=>{
   if(!name||!url){msg.textContent='Please fill in both fields.';return;}
   if(!url.startsWith('http://')&&!url.startsWith('https://')){
     url='https://'+url;
+  }
+  if(links.length>=maxLinks){
+    msg.textContent='You have reached the maximum limit of 10 links.';
+    return;
   }
   const code=Math.random().toString(36).substring(2,8);
   links.push({name,url,code,views:0});
