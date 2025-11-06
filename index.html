@@ -1,584 +1,240 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>LinkShort • Private Shortener (Fixed)</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LinkShort - Dashboard</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:Inter, "Segoe UI", Arial, sans-serif;background:#f4f6fb;color:#111;display:flex;min-height:100vh}
-  .sidebar{width:230px;background:#1f2937;color:#fff;display:flex;flex-direction:column;padding:24px}
-  .sidebar h1{color:#00a2ff;font-size:20px;margin-bottom:18px;text-align:center}
-  .menu{display:flex;flex-direction:column;gap:10px}
-  .menu-item{padding:10px;border-radius:8px;cursor:pointer}
-  .menu-item:hover,.menu-item.active{background:#374151}
-  .main{flex:1;padding:26px;display:flex;flex-direction:column}
-  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
-  h2{font-size:22px;color:#0f172a}
-  .link-counter{background:#007bff;color:#fff;padding:8px 14px;border-radius:8px}
-  .card{background:#fff;padding:16px;border-radius:12px;box-shadow:0 6px 20px rgba(6,24,45,0.06);margin-bottom:18px}
-  input,textarea,select,button{font-size:14px;padding:10px;border-radius:8px;border:1px solid #d1d5db;width:100%}
-  textarea{min-height:90px;resize:vertical}
-  button{background:#007bff;color:#fff;border:none;cursor:pointer}
-  button.ghost{background:transparent;color:#111;border:1px solid #e6eef8}
-  .grid-2{display:grid;grid-template-columns:1fr 360px;gap:16px}
-  .link-list{margin-top:12px}
-  .link-item{background:#fbfdff;border:1px solid #eef5ff;padding:10px;border-radius:10px;margin-bottom:10px}
-  .actions{margin-top:8px}
-  .actions button{margin-right:8px;padding:6px 10px;font-size:13px;border-radius:8px}
-  .muted{color:#6b7280;font-size:13px}
-  .tools-bar{background:#e8efff;padding:10px;border-radius:8px;margin-bottom:12px}
-  .small{font-size:13px}
-  .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#ffebc2;color:#874200;margin-left:8px;font-weight:600}
-  #redirectPage{display:none;background:#0b1220;color:#fff;height:100vh;width:100vw;position:fixed;top:0;left:0;z-index:9999;align-items:center;justify-content:center;flex-direction:column;text-align:center}
-  #redirectPage h1{font-size:26px;margin-bottom:8px}
-  .flex{display:flex;gap:10px;align-items:center}
-  .switch{display:inline-flex;align-items:center;gap:8px}
-  canvas.identicon{border-radius:8px;border:1px solid #eef2ff}
-  .ext-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:10px;border-radius:8px;background:#fbfdff;border:1px solid #eef5ff}
-  .note{font-size:13px;color:#6b7280;margin-top:8px}
-  .disabled-note{font-size:13px;color:#9aa3b2;margin-top:6px}
-  @media (max-width:980px){.grid-2{grid-template-columns:1fr};.sidebar{display:none}}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif}
+body{display:flex;height:100vh;background:#18191c;color:#fff;overflow:hidden}
+
+/* Sidebar */
+.sidebar{
+  width:230px;background:#202225;display:flex;flex-direction:column;
+  align-items:flex-start;padding:20px 0;border-right:1px solid #2f3136
+}
+.sidebar h2{
+  font-size:22px;color:#7289da;margin:0 0 20px 20px
+}
+.sidebar a{
+  color:#ccc;text-decoration:none;padding:12px 20px;width:100%;
+  display:block;transition:0.2s
+}
+.sidebar a:hover,.sidebar a.active{
+  background:#5865f2;color:#fff
+}
+
+/* Main */
+.main{
+  flex:1;display:flex;flex-direction:column;background:#2f3136
+}
+.topbar{
+  height:60px;background:#202225;display:flex;align-items:center;
+  justify-content:space-between;padding:0 20px;border-bottom:1px solid #2f3136
+}
+.topbar h1{font-size:20px;color:#fff}
+.content{padding:20px;overflow:auto;flex:1}
+
+/* Sections */
+.section{display:none}
+.section.active{display:block}
+
+/* Buttons and forms */
+button{
+  background:#5865f2;color:white;border:none;padding:10px 16px;
+  border-radius:6px;cursor:pointer;transition:0.2s
+}
+button:hover{background:#4752c4}
+input{
+  background:#40444b;border:none;border-radius:6px;color:#fff;
+  padding:10px;width:100%;margin-bottom:10px
+}
+.link-card{
+  background:#202225;border-radius:8px;padding:12px;margin:10px 0;
+  display:flex;justify-content:space-between;align-items:center
+}
+
+/* Redirect */
+.redirect{
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  height:100vh;background:#18191c;color:#fff
+}
+
+/* Settings & About */
+.setting-item{margin-bottom:15px}
+.setting-item label{display:block;margin-bottom:5px;font-weight:bold}
 </style>
 </head>
 <body>
 
-<aside class="sidebar">
-  <h1>LinkShort</h1>
-  <nav class="menu">
-    <div class="menu-item active" data-page="dashboard">Dashboard</div>
-    <div class="menu-item" data-page="mylinks">My Links</div>
-    <div class="menu-item" data-page="tools">Tools & Extensions</div>
-    <div class="menu-item" data-page="settings">Settings</div>
-    <div class="menu-item" data-page="about">About</div>
-  </nav>
-  <div style="margin-top:auto;font-size:13px;color:#94a3b8">Version 1.4 • Private • No Ads</div>
-</aside>
-
-<main class="main">
-  <header>
-    <div>
-      <h2 id="pageTitle">Dashboard</h2>
-      <div class="muted small">Manage your short links locally — extensions are optional helpers</div>
-    </div>
-    <div class="link-counter" id="linkCounter">Links: 0 / 10</div>
-  </header>
-
-  <!-- Dashboard -->
-  <section id="dashboard" class="page" style="display:block">
-    <div class="tools-bar"><strong>Extensions:</strong> AI Assistant <span class="badge">BETA</span> • Identicon • Bulk Create • Export/Import</div>
-
-    <div class="card grid-2">
-      <div>
-        <h3>Create a new short link</h3>
-        <div style="margin-top:8px" class="small muted">Tip: you can type domain only (e.g. youtube.com) — the app will add https:// automatically.</div>
-        <div style="height:10px"></div>
-        <input id="linkName" placeholder="Name for your link (optional)" />
-        <div style="height:8px"></div>
-        <input id="longUrl" placeholder="Enter URL (like example.com or https://example.com)" />
-        <div style="height:8px"></div>
-        <div style="display:flex;gap:8px">
-          <button id="shortenBtn">Create Short Link</button>
-          <button id="suggestBtn" class="ghost">Suggest name</button>
-        </div>
-        <div id="createMsg" class="note"></div>
-      </div>
-
-      <aside>
-        <div class="card">
-          <h4>Quick Actions</h4>
-          <div style="height:8px"></div>
-          <button id="exportBtn" class="ghost">Export Backup (JSON)</button>
-          <div style="height:8px"></div>
-          <input id="importFile" type="file" accept=".json" />
-          <div style="height:8px"></div>
-          <button id="exportCSV" class="ghost">Export CSV (views)</button>
-          <div class="note">Backups stay local. Import merges entries (you control the import).</div>
-        </div>
-
-        <div style="height:12px"></div>
-
-        <div class="card">
-          <h4>Identicon</h4>
-          <div class="muted small">Generate a unique image for any short link (does not modify data).</div>
-          <div style="height:10px"></div>
-          <input id="identUrl" placeholder="Paste short link or original URL" />
-          <div style="height:8px"></div>
-          <div style="display:flex;gap:8px">
-            <button id="genIdent">Generate</button>
-            <button id="downloadIdent" class="ghost">Download</button>
-          </div>
-          <div style="height:10px"></div>
-          <canvas id="identCanvas" width="120" height="120" class="identicon"></canvas>
-        </div>
-      </aside>
-    </div>
-
-    <div class="card">
-      <h3>Your Links</h3>
-      <div id="linkList" class="link-list"></div>
-    </div>
-  </section>
-
-  <!-- My Links -->
-  <section id="mylinks" class="page">
-    <div class="card">
-      <h3>All Links</h3>
-      <div id="allLinks"></div>
-    </div>
-  </section>
-
-  <!-- Tools & Extensions -->
-  <section id="tools" class="page">
-    <div class="card">
-      <h3>Tools & Extensions</h3>
-      <p class="muted small">Extensions are helpers — they will not change or create links unless you explicitly ask them to. By default extensions are disabled; enable what you want.</p>
-
-      <!-- AI -->
-      <div class="ext-row">
-        <div>
-          <strong>AI Assistant</strong>
-          <div class="muted small">Guided Q&A to help you create a link. Experimental BETA.</div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <label class="switch"><input type="checkbox" id="extAI" /> Enable</label>
-          <button id="openAI" class="ghost">Open</button>
-        </div>
-      </div>
-
-      <!-- Auto-tagging -->
-      <div class="ext-row">
-        <div>
-          <strong>Auto-Tagging (suggest)</strong>
-          <div class="muted small">When enabled, Suggest Name will use smarter heuristics. It does not change links automatically.</div>
-        </div>
-        <div><label class="switch"><input type="checkbox" id="extAutoTag" /> Enable</label></div>
-      </div>
-
-      <!-- Bulk -->
-      <div class="ext-row">
-        <div>
-          <strong>Bulk Create (manual)</strong>
-          <div class="muted small">Paste multiple URLs and create links in one action (respects limit). Disabled by default.</div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center"><label class="switch"><input type="checkbox" id="extBulk" /> Enable</label><button id="openBulk" class="ghost">Open</button></div>
-      </div>
-
-      <!-- Checker -->
-      <div class="ext-row">
-        <div>
-          <strong>URL Checker</strong>
-          <div class="muted small">Validate format and attempt a reachability test (best-effort).</div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center"><label class="switch"><input type="checkbox" id="extChecker" /> Enable</label><button id="openChecker" class="ghost">Open</button></div>
-      </div>
-
-      <div class="note">Enable an extension first, then click Open to use it. Extensions only help — they do not run automatically.</div>
-    </div>
-
-    <!-- Bulk modal -->
-    <div id="bulkModal" style="display:none;margin-top:12px">
-      <div class="card">
-        <h4>Bulk Create Links</h4>
-        <p class="muted small">Paste one URL per line or comma separated. The app will create as many as allowed by your limit. Confirm before creating.</p>
-        <textarea id="bulkInput" placeholder="https://site1.com&#10;site2.com, example.org"></textarea>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button id="bulkCreateBtn">Create Bulk (confirm)</button>
-          <button id="bulkCancel" class="ghost">Cancel</button>
-        </div>
-        <div id="bulkMsg" class="note"></div>
-      </div>
-    </div>
-
-    <!-- URL Checker -->
-    <div id="checker" style="display:none;margin-top:12px">
-      <div class="card">
-        <h4>URL Checker</h4>
-        <input id="checkUrl" placeholder="Enter URL to check (example.com or https://...)" />
-        <div style="height:8px"></div>
-        <div style="display:flex;gap:8px">
-          <button id="runCheck">Check</button>
-          <button id="cancelCheck" class="ghost">Close</button>
-        </div>
-        <div id="checkResult" class="note"></div>
-      </div>
-    </div>
-
-  </section>
-
-  <!-- Settings -->
-  <section id="settings" class="page">
-    <div class="card">
-      <h3>Settings</h3>
-      <p class="muted small">This app stores data locally in your browser. You can adjust the max links per user below (the real upper bound depends on the available space in your browser's localStorage).</p>
-      <div style="margin-top:12px">
-        <label>Max links per user (practical limit):</label>
-        <select id="maxLinksSelect">
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="25">25</option>
-          <option value="50">50</option>
-          <option value="200">200</option>
-        </select>
-      </div>
-      <div style="height:12px"></div>
-      <button id="clearAll" class="ghost">Reset All Links (local)</button>
-      <div class="note">Reset deletes stored data on this device only.</div>
-    </div>
-  </section>
-
-  <!-- About -->
-  <section id="about" class="page">
-    <div class="card">
-      <h3>About LinkShort</h3>
-      <p class="muted small">LinkShort is a privacy-first local URL shortener. No ads, no external servers. Extensions run fully in your browser and are disabled by default.</p>
-      <ul style="margin-top:10px">
-        <li>AI Assistant — Beta guided link creation (opt-in).</li>
-        <li>Identicon generator — visual identity (helper only).</li>
-        <li>Bulk operations, export/import and CSV analytics — manual actions only.</li>
-      </ul>
-      <p class="muted small" style="margin-top:8px">Version 1.4 — experimental features clearly labeled BETA.</p>
-    </div>
-  </section>
-
-</main>
-
-<!-- Redirect overlay -->
-<div id="redirectPage">
-  <h1>Redirecting...</h1>
+<!-- Redirect Page -->
+<div id="redirectPage" class="redirect" style="display:none">
+  <h2>Redirecting...</h2>
   <p>Please wait, you will be redirected shortly.</p>
-  <div id="redirectNote" class="muted small" style="margin-top:10px"></div>
+</div>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <h2>LinkShort</h2>
+  <a href="#" class="active" data-target="dashboard">Dashboard</a>
+  <a href="#" data-target="mylinks">My Links</a>
+  <a href="#" data-target="settings">Settings</a>
+  <a href="#" data-target="about">About</a>
+</div>
+
+<!-- Main -->
+<div class="main" id="mainApp">
+  <div class="topbar">
+    <h1 id="pageTitle">Dashboard</h1>
+    <div id="statsDisplay">0 / 20 links</div>
+  </div>
+  <div class="content">
+    
+    <!-- Dashboard -->
+    <div id="dashboard" class="section active">
+      <h2>Create a new short link</h2>
+      <input type="text" id="linkName" placeholder="Enter link name">
+      <input type="text" id="linkUrl" placeholder="Enter destination URL (https://example.com)">
+      <button id="createBtn">Create Link</button>
+      <p id="statusMsg"></p>
+    </div>
+
+    <!-- My Links -->
+    <div id="mylinks" class="section">
+      <h2>Your Links</h2>
+      <div id="linksList"></div>
+    </div>
+
+    <!-- Settings -->
+    <div id="settings" class="section">
+      <h2>Settings</h2>
+      <div class="setting-item">
+        <label for="maxLinks">Max Links per Account:</label>
+        <input type="number" id="maxLinks" value="20" min="1" max="999">
+      </div>
+      <button id="saveSettings">Save Settings</button>
+      <p id="settingsStatus"></p>
+    </div>
+
+    <!-- About -->
+    <div id="about" class="section">
+      <h2>About LinkShort</h2>
+      <p>LinkShort is a privacy-first link shortener that stores all your data locally using LocalStorage.</p>
+      <p>No ads. No servers. Everything stays in your browser.</p>
+      <p>You can create, manage, and redirect links directly — your data never leaves your device.</p>
+    </div>
+
+  </div>
 </div>
 
 <script>
-/* ---------------------------
-  Storage & initial state
-----------------------------*/
-const STORAGE_KEY = "shortLinks_v2";
-const EXT_KEY = "linkshort_extensions_v1";
-let MAX_LINKS = Number(localStorage.getItem("maxLinks") || 10);
-/* LINKS: code -> {name, url(encrypted), views, createdAt} */
-let LINKS = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-/* extensions state saved in localStorage, default all false */
-const DEFAULT_EXT = {
-  ai: false,
-  autotag: false,
-  bulk: false,
-  checker: false
-};
-let EXT = JSON.parse(localStorage.getItem(EXT_KEY) || JSON.stringify(DEFAULT_EXT));
-function saveExt(){ localStorage.setItem(EXT_KEY, JSON.stringify(EXT)); }
-function saveAll(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(LINKS)); }
+/* ---------- Redirect Handling ---------- */
+const params=new URLSearchParams(window.location.search);
+if(params.has('c')){
+  document.body.innerHTML='';
+  const div=document.createElement('div');
+  div.className='redirect';
+  div.innerHTML=`<h2>Redirecting...</h2><p>Please wait, you will be redirected shortly.</p>`;
+  document.body.appendChild(div);
 
-/* helpers */
-function encrypt(s){ return btoa(unescape(encodeURIComponent(s))); }
-function decrypt(s){ try{ return decodeURIComponent(escape(atob(s))); }catch(e){ return s; } }
-function ensureProtocol(url){ url = (url||"").trim(); if(!/^https?:\/\//i.test(url) && url!=="") return "https://"+url; return url; }
-function nowISO(){ return new Date().toISOString(); }
-function generateCode(){ return Math.random().toString(36).slice(2,9); }
-function suggestNameFromUrl(u){ try{ const host = new URL(u).hostname.replace(/^www\./,''); const base = host.split('.')[0]; return base.charAt(0).toUpperCase()+base.slice(1); }catch(e){ return "Link"; } }
-
-/* UI refs */
-const pages = document.querySelectorAll(".page");
-const menuItems = document.querySelectorAll(".menu-item");
-const pageTitle = document.getElementById("pageTitle");
-const linkListEl = document.getElementById("linkList");
-const counterEl = document.getElementById("linkCounter");
-const linkNameInput = document.getElementById("linkName");
-const longUrlInput = document.getElementById("longUrl");
-const shortenBtn = document.getElementById("shortenBtn");
-const suggestBtn = document.getElementById("suggestBtn");
-const createMsg = document.getElementById("createMsg");
-const exportBtnEl = document.getElementById("exportBtn");
-const importFileInput = document.getElementById("importFile");
-const exportCSV = document.getElementById("exportCSV");
-const identUrl = document.getElementById("identUrl");
-const genIdentBtn = document.getElementById("genIdent");
-const downloadIdentBtn = document.getElementById("downloadIdent");
-const identCanvas = document.getElementById("identCanvas");
-const identCtx = identCanvas.getContext("2d");
-const allLinksArea = document.getElementById("allLinks");
-
-/* tools refs */
-const extAICheck = document.getElementById("extAI");
-const extAutoTagCheck = document.getElementById("extAutoTag");
-const extBulkCheck = document.getElementById("extBulk");
-const extCheckerCheck = document.getElementById("extChecker");
-const openAI = document.getElementById("openAI");
-const openBulk = document.getElementById("openBulk");
-const bulkModal = document.getElementById("bulkModal");
-const bulkInput = document.getElementById("bulkInput");
-const bulkCreateBtn = document.getElementById("bulkCreateBtn");
-const bulkCancel = document.getElementById("bulkCancel");
-const openChecker = document.getElementById("openChecker");
-const checker = document.getElementById("checker");
-const checkUrl = document.getElementById("checkUrl");
-const runCheck = document.getElementById("runCheck");
-const cancelCheck = document.getElementById("cancelCheck");
-const startAIbtn = document.getElementById("startAI"); // optional helper in tools page not present here
-const aiArea = document.getElementById("aiArea");
-const aiQuestion = document.getElementById("aiQuestion");
-const aiAnswer = document.getElementById("aiAnswer");
-const aiNext = document.getElementById("aiNext");
-const maxLinksSelect = document.getElementById("maxLinksSelect");
-const clearAllBtn = document.getElementById("clearAll");
-const importFile = importFileInput;
-const redirectPage = document.getElementById("redirectPage");
-const redirectNote = document.getElementById("redirectNote");
-
-/* sync extension toggles UI from EXT */
-function initExtensionToggles(){
-  extAICheck.checked = !!EXT.ai;
-  extAutoTagCheck.checked = !!EXT.autotag;
-  extBulkCheck.checked = !!EXT.bulk;
-  extCheckerCheck.checked = !!EXT.checker;
+  const code=params.get('c');
+  const data=JSON.parse(localStorage.getItem('links')||'[]');
+  const link=data.find(l=>l.code===code);
+  if(link){
+    link.views=(link.views||0)+1;
+    localStorage.setItem('links',JSON.stringify(data));
+    setTimeout(()=>{window.location.href=link.url;},2000);
+  } else {
+    div.innerHTML='<h2>Invalid link!</h2><p>The link you tried to access does not exist.</p>';
+  }
 }
-/* toggle event handlers */
-extAICheck && extAICheck.addEventListener('change', ()=>{ EXT.ai = !!extAICheck.checked; saveExt(); });
-extAutoTagCheck && extAutoTagCheck.addEventListener('change', ()=>{ EXT.autotag = !!extAutoTagCheck.checked; saveExt(); });
-extBulkCheck && extBulkCheck.addEventListener('change', ()=>{ EXT.bulk = !!extBulkCheck.checked; saveExt(); });
-extCheckerCheck && extCheckerCheck.addEventListener('change', ()=>{ EXT.checker = !!extCheckerCheck.checked; saveExt(); });
 
-/* navigation */
-menuItems.forEach(mi=>{
-  mi.addEventListener('click', ()=> {
-    menuItems.forEach(m=>m.classList.remove('active'));
-    mi.classList.add('active');
-    const page = mi.dataset.page;
-    pages.forEach(p=>p.style.display='none');
-    document.getElementById(page).style.display='block';
-    pageTitle.textContent = mi.textContent;
-    if(page==='mylinks') renderAllLinks();
+/* ---------- App Logic ---------- */
+const sections=document.querySelectorAll('.section');
+const sidebarLinks=document.querySelectorAll('.sidebar a');
+const pageTitle=document.getElementById('pageTitle');
+const statsDisplay=document.getElementById('statsDisplay');
+let maxLinks=parseInt(localStorage.getItem('maxLinks')||'20');
+let links=JSON.parse(localStorage.getItem('links')||'[]');
+
+function updateStats(){
+  statsDisplay.textContent=`${links.length} / ${maxLinks} links`;
+}
+updateStats();
+
+/* Sidebar navigation */
+sidebarLinks.forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    sidebarLinks.forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    const target=a.dataset.target;
+    sections.forEach(s=>s.classList.remove('active'));
+    document.getElementById(target).classList.add('active');
+    pageTitle.textContent=a.textContent;
+    if(target==='mylinks')renderLinks();
   });
 });
 
-/* render and counter */
-function updateCounter(){ const count = Object.keys(LINKS).length; counterEl.textContent = `Links: ${count} / ${MAX_LINKS}`; }
+/* Create link */
+document.getElementById('createBtn').addEventListener('click',()=>{
+  const name=document.getElementById('linkName').value.trim();
+  let url=document.getElementById('linkUrl').value.trim();
+  const msg=document.getElementById('statusMsg');
+
+  if(!name||!url){msg.textContent='Please fill in both fields.';return;}
+  if(!url.startsWith('http://')&&!url.startsWith('https://')){
+    url='https://'+url;
+  }
+  if(links.length>=maxLinks){
+    msg.textContent='You reached your max links limit.';
+    return;
+  }
+  const code=Math.random().toString(36).substring(2,8);
+  links.push({name,url,code,views:0});
+  localStorage.setItem('links',JSON.stringify(links));
+  msg.textContent='Link created successfully!';
+  document.getElementById('linkName').value='';
+  document.getElementById('linkUrl').value='';
+  updateStats();
+});
+
+/* Render links */
 function renderLinks(){
-  linkListEl.innerHTML = ""; updateCounter();
-  const keys = Object.keys(LINKS).sort((a,b)=> (LINKS[b].createdAt||'') - (LINKS[a].createdAt||''));
-  if(keys.length===0){ linkListEl.innerHTML = "<p class='muted'>No links yet.</p>"; return; }
-  keys.forEach(code=>{
-    const l = LINKS[code]; const short = `${location.origin}${location.pathname}?c=${code}`;
-    const div = document.createElement('div'); div.className='link-item';
-    div.innerHTML = `<strong>${l.name||code}</strong><br><div class="muted">${decrypt(l.url)}</div>
-      <div style="margin-top:8px" class="muted">Views: ${l.views||0} • Created: ${new Date(l.createdAt||nowISO()).toLocaleString()}</div>
-      <div class="actions">
-      <button onclick="openShort('${code}')">Open</button>
-      <button onclick="copyToClipboard('${short}')">Copy</button>
-      <button onclick="editLink('${code}')">Edit</button>
-      <button onclick="deleteLink('${code}')">Delete</button>
-      </div>`;
-    linkListEl.appendChild(div);
+  const list=document.getElementById('linksList');
+  list.innerHTML='';
+  if(links.length===0){list.innerHTML='<p>No links yet.</p>';return;}
+  links.forEach(l=>{
+    const div=document.createElement('div');
+    div.className='link-card';
+    div.innerHTML=`
+      <div>
+        <strong>${l.name}</strong><br>
+        <small><a href="?c=${l.code}" style="color:#7289da">?c=${l.code}</a></small><br>
+        <small>${l.url}</small><br>
+        <small>Views: ${l.views||0}</small>
+      </div>
+      <button onclick="deleteLink('${l.code}')">Delete</button>
+    `;
+    list.appendChild(div);
   });
 }
-function renderAllLinks(){ allLinksArea.innerHTML=''; const keys = Object.keys(LINKS); if(keys.length===0){ allLinksArea.innerHTML="<p class='muted'>No links stored.</p>"; return; } keys.forEach(k=>{ const l=LINKS[k]; allLinksArea.innerHTML += `<p><strong>${l.name}</strong> → ${decrypt(l.url)} (${l.views||0} views)</p>`; }); }
 
-/* CRUD helpers exposed */
-function copyToClipboard(s){ navigator.clipboard.writeText(s); alert("Copied to clipboard"); }
-function openShort(code){ window.location.href = `${location.origin}${location.pathname}?c=${code}`; }
-function editLink(code){
-  const l = LINKS[code];
-  const newName = prompt("Edit link name:", l.name||"");
-  const newUrl = prompt("Edit destination URL:", decrypt(l.url));
-  if(!newUrl) return;
-  l.name = newName;
-  l.url = encrypt(ensureProtocol(newUrl));
-  saveAll(); renderLinks();
+/* Delete link */
+function deleteLink(code){
+  links=links.filter(l=>l.code!==code);
+  localStorage.setItem('links',JSON.stringify(links));
+  renderLinks();
+  updateStats();
 }
-function deleteLink(code){ if(!confirm("Delete this link?")) return; delete LINKS[code]; saveAll(); renderLinks(); }
-
-/* Create single (explicit action) */
-shortenBtn.addEventListener('click', ()=>{
-  const count = Object.keys(LINKS).length;
-  if(count >= MAX_LINKS) return alert(`You reached your limit of ${MAX_LINKS} links.`);
-  let url = longUrlInput.value.trim();
-  const name = linkNameInput.value.trim();
-  if(!url) return alert("Enter a valid URL.");
-  url = ensureProtocol(url);
-  const code = generateCode();
-  LINKS[code] = { name: name || (EXT.autotag ? suggestNameFromUrl(url) : "Link"), url: encrypt(url), views:0, createdAt: nowISO() };
-  saveAll(); renderLinks();
-  linkNameInput.value = ""; longUrlInput.value = ""; createMsg.textContent = "Link created!";
-  setTimeout(()=>createMsg.textContent='',1400);
-});
-
-/* Suggest name (does not modify data) */
-suggestBtn.addEventListener('click', ()=>{
-  const url = ensureProtocol(longUrlInput.value || "");
-  if(!url) return alert("Enter or paste the URL first.");
-  linkNameInput.value = suggestNameFromUrl(url);
-});
-
-/* Export / Import */
-exportBtnEl.addEventListener('click', ()=>{
-  const data = JSON.stringify(LINKS, null, 2);
-  const blob = new Blob([data], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='linkshort-backup.json'; document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
-});
-importFile.addEventListener('change', (ev)=>{
-  const f = ev.target.files[0];
-  if(!f){ ev.target.value = ''; return; }
-  if(!confirm("Import file will merge into your local links. Confirm?")) { ev.target.value = ''; return; }
-  const r = new FileReader();
-  r.onload = ()=> {
-    try{
-      const imported = JSON.parse(r.result);
-      Object.entries(imported).forEach(([k,v])=>{
-        let code = k;
-        if(LINKS[code]) code = generateCode();
-        LINKS[code] = v;
-      });
-      saveAll(); renderLinks(); alert("Import complete (merged).");
-    }catch(e){ alert("Invalid file."); }
-  };
-  r.readAsText(f);
-  ev.target.value = '';
-});
-/* CSV export */
-exportCSV.addEventListener('click', ()=>{
-  const rows = [["code","name","url","views","createdAt"]];
-  Object.entries(LINKS).forEach(([k,v])=> rows.push([k,(v.name||""),decrypt(v.url),(v.views||0),(v.createdAt||"")]));
-  const csv = rows.map(r=> r.map(cell=> `"${String(cell).replace(/"/g,'""')}"`).join(",")).join("\n");
-  const b = new Blob([csv], {type:'text/csv'}); const url = URL.createObjectURL(b);
-  const a = document.createElement('a'); a.href=url; a.download='linkshort-stats.csv'; a.click(); URL.revokeObjectURL(url);
-});
-
-/* Identicon (helper only) */
-function hashToBytes(str){
-  let h=2166136261>>>0;
-  for(let i=0;i<str.length;i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619);
-  const out=[];
-  for(let i=0;i<16;i++){ h = Math.imul(h ^ (h>>>13), 605947); out.push((h>>i)&255); }
-  return out;
-}
-function drawIdenticon(value){
-  const size=5, scale=20; const canvas=identCanvas; const ctx=identCtx; const bytes = hashToBytes(value);
-  const r=bytes[0], g=bytes[1], b=bytes[2];
-  ctx.fillStyle='#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle='#f3f6ff'; ctx.fillRect(0,0,canvas.width,canvas.height);
-  const start=(canvas.width-(size*scale))/2;
-  const grid=[];
-  for(let y=0;y<size;y++){ grid[y]=[]; for(let x=0;x<Math.ceil(size/2);x++){ const idx = 3 + (y*3 + x) % bytes.length; const on = (bytes[idx] % 2) === 0; grid[y][x]=on; } }
-  for(let y=0;y<size;y++){
-    for(let x=0;x<size;x++){
-      const on = x < Math.ceil(size/2) ? grid[y][x] : grid[y][size-1-x];
-      ctx.fillStyle = on ? `rgba(${r},${g},${b},0.95)` : '#fff';
-      ctx.fillRect(start + x*scale, start + y*scale, scale-2, scale-2);
-    }
-  }
-}
-genIdentBtn.addEventListener('click', ()=>{
-  const v = identUrl.value.trim() || (Object.keys(LINKS)[0] ? `${location.origin}${location.pathname}?c=${Object.keys(LINKS)[0]}` : 'linkshort');
-  drawIdenticon(v);
-});
-downloadIdentBtn.addEventListener('click', ()=>{ const a=document.createElement('a'); a.href=identCanvas.toDataURL('image/png'); a.download='identicon.png'; a.click(); });
-
-/* AI Assistant: only works if extension enabled. It's local, simple guided prompts.
-   It will ask the user questions and only create the link after user's confirmation. */
-let aiStep = 0;
-let aiData = {};
-openAI.addEventListener('click', ()=>{
-  if(!EXT.ai){ if(!confirm("AI Assistant is disabled. Enable it now?")) return; EXT.ai = true; saveExt(); initExtensionToggles(); }
-  // show simple prompt flow using window.prompt for clarity (keeps UI simple)
-  const name = prompt("AI: What will be the name of your link? (leave blank for default)");
-  if(name === null) return; // cancelled
-  const dest = prompt("AI: What is the destination URL for your link?");
-  if(!dest) return alert("AI: No URL provided. Aborting.");
-  const url = ensureProtocol(dest);
-  if(!confirm(`AI: Create link with name "${name || suggestNameFromUrl(url)}" → ${url}?`)) return;
-  const count = Object.keys(LINKS).length;
-  if(count >= MAX_LINKS) return alert(`Limit reached (${MAX_LINKS}). Cannot create.`);
-  const code = generateCode();
-  LINKS[code] = { name: name || suggestNameFromUrl(url), url: encrypt(url), views:0, createdAt: nowISO() };
-  saveAll(); renderLinks(); alert("AI: Link created. You can view it in the dashboard.");
-});
-
-/* Bulk create: only works if ext enabled and user confirms */
-openBulk.addEventListener('click', ()=> {
-  if(!EXT.bulk){ if(!confirm("Bulk Create extension is disabled. Enable now?")) return; EXT.bulk=true; saveExt(); initExtensionToggles(); }
-  bulkModal.style.display='block'; window.scrollTo({top:1000,behavior:'smooth'});
-});
-bulkCancel.addEventListener('click', ()=>{ bulkModal.style.display='none'; bulkInput.value=''; bulkMsg.textContent=''; });
-bulkCreateBtn.addEventListener('click', ()=>{
-  if(!EXT.bulk) return alert("Bulk Create not enabled.");
-  const raw = bulkInput.value.trim();
-  if(!raw) return bulkMsg.textContent="Paste some URLs first.";
-  const parts = raw.split(/[\n,]+/).map(s=>s.trim()).filter(Boolean);
-  if(!confirm(`Create ${parts.length} links? This will respect your limit of ${MAX_LINKS} links.`)) return;
-  let created=0;
-  for(const p of parts){
-    if(Object.keys(LINKS).length >= MAX_LINKS) break;
-    const url = ensureProtocol(p);
-    const code = generateCode();
-    LINKS[code] = { name: suggestNameFromUrl(url), url: encrypt(url), views:0, createdAt: nowISO() };
-    created++;
-  }
-  saveAll(); renderLinks();
-  bulkMsg.textContent = `Created ${created} link(s).`;
-});
-
-/* URL Checker - helper only */
-openChecker.addEventListener('click', ()=> {
-  if(!EXT.checker){ if(!confirm("URL Checker is disabled. Enable now?")) return; EXT.checker=true; saveExt(); initExtensionToggles(); }
-  checker.style.display='block'; window.scrollTo({top:1000,behavior:'smooth'});
-});
-cancelCheck.addEventListener('click', ()=>{ checker.style.display='none'; checkUrl.value=''; document.getElementById('checkResult').textContent=''; });
-runCheck.addEventListener('click', async ()=>{
-  const u = checkUrl.value.trim(); if(!u) return document.getElementById('checkResult').textContent="Enter a URL.";
-  const url = ensureProtocol(u); try{ new URL(url); }catch(e){ return document.getElementById('checkResult').textContent="Invalid URL format."; }
-  document.getElementById('checkResult').textContent = "Attempting reachability (may be limited by CORS)...";
-  try{
-    // quick HEAD with timeout and CORS caveat
-    const controller = new AbortController();
-    const id = setTimeout(()=>controller.abort(),4000);
-    await fetch(url, { method:'HEAD', mode:'no-cors', signal:controller.signal });
-    clearTimeout(id);
-    document.getElementById('checkResult').textContent = "Request attempted. CORS may prevent exact status; if no error, likely reachable.";
-  }catch(err){
-    document.getElementById('checkResult').textContent = "Request failed or CORS blocked the check. The URL might still be valid.";
-  }
-});
 
 /* Settings */
-maxLinksSelect.value = String(MAX_LINKS);
-maxLinksSelect.addEventListener('change', ()=> {
-  MAX_LINKS = Number(maxLinksSelect.value);
-  localStorage.setItem('maxLinks', String(MAX_LINKS));
-  updateCounter();
+document.getElementById('saveSettings').addEventListener('click',()=>{
+  maxLinks=parseInt(document.getElementById('maxLinks').value)||20;
+  localStorage.setItem('maxLinks',maxLinks);
+  document.getElementById('settingsStatus').textContent='Settings saved.';
+  updateStats();
 });
-clearAllBtn.addEventListener('click', ()=> {
-  if(!confirm("This will remove all stored links from this device. Continue?")) return;
-  localStorage.removeItem(STORAGE_KEY); LINKS={}; saveAll(); renderLinks(); alert("All links removed.");
-});
-
-/* Redirect handling (show redirect page only for valid code) */
-const params = new URLSearchParams(location.search);
-const codeParam = params.get('c');
-if(codeParam && LINKS[codeParam]){
-  // hide UI, show redirect
-  document.querySelector('.sidebar').style.display='none';
-  document.querySelector('.main').style.display='none';
-  redirectPage.style.display='flex';
-  LINKS[codeParam].views = (LINKS[codeParam].views||0) + 1;
-  saveAll();
-  redirectNote.textContent = `Short code: ${codeParam} • views now: ${LINKS[codeParam].views}`;
-  setTimeout(()=> { window.location.href = decrypt(LINKS[codeParam].url); }, 1800);
-} else {
-  // normal load
-  initExtensionToggles();
-  renderLinks();
-  renderAllLinks();
-}
-
-/* expose helpers globally for inline onclicks */
-window.openShort = openShort;
-window.copyToClipboard = copyToClipboard;
-window.editLink = editLink;
-window.deleteLink = deleteLink;
-
 </script>
 </body>
 </html>
