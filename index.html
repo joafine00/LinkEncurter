@@ -3,511 +3,306 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Enhanced Link Shortener & File Storage</title>
+<title>LinkShort - Dashboard</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
-
   * {
     box-sizing: border-box;
-  }
-
-  body {
     margin: 0;
-    background: #121212;
-    color: #eee;
-    font-family: 'Inter', sans-serif;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem 1rem;
-  }
-
-  h1 {
-    font-weight: 600;
-    margin-bottom: 1rem;
-    color: #61dafb;
-  }
-
-  label {
-    display: block;
-    margin-top: 1.5rem;
-    font-weight: 600;
-    color: #bbb;
-  }
-
-  input[type="text"],
-  input[type="file"] {
-    width: 100%;
-    max-width: 480px;
-    background: #222;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 16px;
-    color: #eee;
-    font-size: 1rem;
-    margin-top: 0.4rem;
-    transition: background 0.3s ease;
-  }
-
-  input[type="text"]:focus,
-  input[type="file"]:focus {
-    outline: none;
-    background: #333;
-  }
-
-  button {
-    margin-top: 1rem;
-    max-width: 480px;
-    width: 100%;
-    padding: 14px;
-    background: #61dafb;
-    color: #121212;
-    font-weight: 700;
-    font-size: 1.1rem;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.25s ease;
-  }
-
-  button:hover {
-    background: #21a1f1;
-  }
-
-  #waiting {
-    margin-top: 3rem;
-    font-size: 1.5rem;
-    color: #61dafb;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    user-select: none;
-  }
-
-  #countdown {
-    font-weight: 700;
-    font-size: 3rem;
-    margin-top: 0.5rem;
-    animation: pulse 1s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-
-  .tabs {
-    margin-top: 2rem;
-    max-width: 480px;
-    width: 100%;
-    display: flex;
-    border-bottom: 2px solid #333;
-  }
-
-  .tab {
-    flex-grow: 1;
-    text-align: center;
-    padding: 12px 0;
-    cursor: pointer;
-    font-weight: 600;
-    color: #bbb;
-    border-bottom: 3px solid transparent;
-    transition: all 0.3s ease;
-    user-select: none;
-  }
-
-  .tab.active {
-    color: #61dafb;
-    border-color: #61dafb;
-  }
-
-  .tab-content {
-    max-width: 480px;
-    width: 100%;
-    margin-top: 1rem;
-  }
-
-  ul {
-    list-style: none;
     padding: 0;
-    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  body {
+    display: flex;
+    height: 100vh;
+    background: #18191c;
+    color: #fff;
+    overflow: hidden;
   }
 
-  li.item {
-    background: #222;
-    border-radius: 8px;
-    margin-bottom: 0.8rem;
-    padding: 12px 16px;
-    color: #ccc;
+  /* Sidebar */
+  .sidebar {
+    width: 250px;
+    background: #202225;
     display: flex;
     flex-direction: column;
-    transition: background 0.3s ease;
+    align-items: flex-start;
+    padding: 20px 0;
+    border-right: 1px solid #2f3136;
+  }
+  .sidebar h2 {
+    font-size: 26px;
+    color: #7289da;
+    margin-left: 25px;
+    margin-bottom: 25px;
+    user-select: none;
+  }
+  .sidebar a {
+    color: #ccc;
+    text-decoration: none;
+    padding: 14px 30px;
+    width: 100%;
+    display: block;
+    transition: background-color 0.3s ease;
+    font-weight: 600;
+  }
+  .sidebar a:hover,
+  .sidebar a.active {
+    background: #5865f2;
+    color: #fff;
   }
 
-  li.item:hover {
-    background: #333;
+  /* Main */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #2f3136;
+  }
+  .topbar {
+    height: 60px;
+    background: #202225;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 25px;
+    border-bottom: 1px solid #2f3136;
+  }
+  .topbar h1 {
+    font-size: 22px;
+    color: #fff;
+  }
+  #statsDisplay {
+    font-weight: 600;
+    color: #ccc;
   }
 
-  .item-header {
+  .content {
+    padding: 25px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  /* Sections */
+  .section {
+    display: none;
+  }
+  .section.active {
+    display: block;
+  }
+
+  /* Buttons and inputs */
+  button {
+    background: #5865f2;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    margin-top: 8px;
+  }
+  button:hover {
+    background: #4752c4;
+  }
+  input {
+    background: #40444b;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    padding: 12px;
+    width: 100%;
+    margin-bottom: 15px;
+    font-size: 16px;
+  }
+
+  .link-card {
+    background: #202225;
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 12px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+  .link-card a {
+    color: #7289da;
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .link-card small {
+    color: #bbb;
+    font-size: 13px;
+  }
+  .link-info {
+    max-width: 75%;
   }
 
-  .item-name {
-    font-weight: 700;
-    color: #61dafb;
-    cursor: pointer;
-    user-select: text;
-    flex-grow: 1;
+  /* Redirect */
+  .redirect {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    background: linear-gradient(180deg, #18191c, #202225);
+    color: #fff;
+    text-align: center;
+    padding: 25px;
   }
-
-  .item-name[contenteditable]:focus {
-    outline: 2px solid #61dafb;
-    background: #1a1a1a;
-    border-radius: 4px;
+  .redirect h2 {
+    font-size: 26px;
+    margin-bottom: 14px;
+    color: #7289da;
+    user-select: none;
   }
-
-  .item-link {
+  .redirect p {
     color: #ccc;
-    font-size: 0.85rem;
-    word-break: break-all;
-    margin-top: 4px;
+    margin-bottom: 14px;
+    font-size: 17px;
   }
-
-  .item-info {
-    font-size: 0.8rem;
-    color: #888;
-    margin-top: 4px;
-  }
-
-  .tab-content {
-    max-height: 360px;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: #61dafb #222;
-  }
-  .tab-content::-webkit-scrollbar {
-    width: 8px;
-  }
-  .tab-content::-webkit-scrollbar-thumb {
-    background-color: #61dafb;
+  .progress-bar {
+    width: 240px;
+    height: 8px;
+    background: #2f3136;
     border-radius: 4px;
+    overflow: hidden;
+    margin-top: 15px;
+  }
+  .progress {
+    width: 0%;
+    height: 100%;
+    background: #5865f2;
+    transition: width 5s linear;
+  }
+  .redirect button {
+    margin-top: 18px;
+    background: #40444b;
+    color: #fff;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .redirect button:hover {
+    background: #5865f2;
   }
 
+  /* Admin Panel */
+  .admin-cards {
+    display: flex;
+    gap: 18px;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+  }
+  .admin-card {
+    background: #202225;
+    border-radius: 10px;
+    padding: 18px 22px;
+    flex: 1 1 250px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+  .admin-card h3 {
+    margin-bottom: 12px;
+    color: #7289da;
+    user-select: none;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #202225;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.6);
+  }
+  th, td {
+    padding: 12px 16px;
+    color: #ccc;
+    text-align: left;
+    font-size: 14px;
+  }
+  th {
+    background: #2f3136;
+  }
+  tr:nth-child(even) {
+    background: #2a2c30;
+  }
+  tr:hover {
+    background: #5865f2;
+    color: #fff;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #202225;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #5865f2;
+    border-radius: 5px;
+  }
 </style>
 </head>
 <body>
 
-<h1>Simple Link Shortener & File Storage</h1>
-
-<label for="inputURL">Enter URL or text:</label>
-<input id="inputURL" type="text" placeholder="Paste your URL or any text here" autocomplete="off" />
-
-<button id="btnCreateLink">Create Short Link</button>
-
-<label for="inputFile">Or upload file(s):</label>
-<input id="inputFile" type="file" multiple />
-
-<button id="btnUploadFile">Save File(s) & Get Link</button>
-
-<div id="waiting" style="display:none;">
-  Redirecting in <span id="countdown">5</span> seconds...
+<!-- Redirect Page -->
+<div id="redirectPage" class="redirect" style="display:none">
+  <h2>Redirecting...</h2>
+  <p id="redirectMsg">Please wait, you will be redirected shortly.</p>
+  <div class="progress-bar"><div class="progress" id="progress"></div></div>
+  <button id="cancelBtn">Cancel</button>
 </div>
 
-<div class="tabs">
-  <div class="tab active" data-tab="links">Links</div>
-  <div class="tab" data-tab="files">Files</div>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <h2>LinkShort</h2>
+  <a href="#" class="active" data-target="dashboard">Dashboard</a>
+  <a href="#" data-target="mylinks">My Links</a>
+  <a href="#" data-target="about">About</a>
+  <a href="#" data-target="adminPanel">Admin Panel</a>
 </div>
 
-<div class="tab-content" id="linksTab">
-  <ul id="linksList"></ul>
-</div>
+<!-- Main -->
+<div class="main" id="mainApp">
+  <div class="topbar">
+    <h1 id="pageTitle">Dashboard</h1>
+    <div id="statsDisplay">0 / 10 links</div>
+  </div>
+  <div class="content">
 
-<div class="tab-content" id="filesTab" style="display:none;">
-  <ul id="filesList"></ul>
-</div>
+    <!-- Dashboard -->
+    <div id="dashboard" class="section active">
+      <h2>Create a new short link</h2>
+      <input type="text" id="linkName" placeholder="Enter link name" autocomplete="off" />
+      <input type="text" id="linkUrl" placeholder="Enter destination URL (https://example.com)" autocomplete="off" />
+      <button id="createBtn">Create Link</button>
+      <p id="statusMsg"></p>
+    </div>
 
-<script>
-  const STORAGE_KEY = 'shortener_links';
+    <!-- My Links -->
+    <div id="mylinks" class="section">
+      <h2>Your Links</h2>
+      <div id="linksList"></div>
+    </div>
 
-  function saveEntry(data) {
-    const allEntries = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
-    const id = 'id_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-    allEntries[id] = data;
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allEntries));
-    return id;
-  }
+    <!-- About -->
+    <div id="about" class="section">
+      <h2>About LinkShort</h2>
+      <p>LinkShort is a privacy-first, ad-free link shortener that works entirely in your browser using LocalStorage.</p>
+      <p>No servers, no tracking — everything is stored locally on your device.</p>
+      <p>You can create up to <strong>10 links</strong> per browser account.</p>
+      <p>All your links and view counts are stored privately and securely inside your browser’s storage.</p>
+    </div>
 
-  function updateEntryName(id, newName) {
-    const allEntries = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
-    if (allEntries[id]) {
-      allEntries[id].customName = newName.trim();
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(allEntries));
-    }
-  }
-
-  function escapeHTML(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-  }
-
-  function renderLinks() {
-    const listEl = document.getElementById('linksList');
-    const allEntries = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
-    listEl.innerHTML = '';
-
-    const links = Object.entries(allEntries).filter(([_, v]) => v.type === 'text');
-
-    if (links.length === 0) {
-      listEl.innerHTML = '<li style="color:#666;">No links created yet.</li>';
-      return;
-    }
-
-    for (const [id, entry] of links) {
-      const li = document.createElement('li');
-      li.className = 'item';
-
-      const nameEl = document.createElement('div');
-      nameEl.className = 'item-name';
-      nameEl.contentEditable = true;
-      nameEl.spellcheck = false;
-      nameEl.textContent = entry.customName || (entry.content.length > 30 ? entry.content.slice(0, 30) + '...' : entry.content);
-
-      nameEl.addEventListener('blur', () => {
-        updateEntryName(id, nameEl.textContent);
-      });
-      nameEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          nameEl.blur();
-        }
-      });
-
-      const shortUrl = `${window.location.origin}${window.location.pathname}?id=${id}`;
-      const linkEl = document.createElement('a');
-      linkEl.className = 'item-link';
-      linkEl.href = shortUrl;
-      linkEl.target = '_blank';
-      linkEl.rel = 'noopener noreferrer';
-      linkEl.textContent = shortUrl;
-
-      const infoEl = document.createElement('div');
-      infoEl.className = 'item-info';
-      infoEl.textContent = `Original: ${entry.content}`;
-
-      li.appendChild(nameEl);
-      li.appendChild(linkEl);
-      li.appendChild(infoEl);
-      listEl.appendChild(li);
-    }
-  }
-
-  function renderFiles() {
-    const listEl = document.getElementById('filesList');
-    const allEntries = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
-    listEl.innerHTML = '';
-
-    const filesEntries = Object.entries(allEntries).filter(([_, v]) => v.type === 'files');
-
-    if (filesEntries.length === 0) {
-      listEl.innerHTML = '<li style="color:#666;">No files uploaded yet.</li>';
-      return;
-    }
-
-    for (const [id, entry] of filesEntries) {
-      const li = document.createElement('li');
-      li.className = 'item';
-
-      const nameEl = document.createElement('div');
-      nameEl.className = 'item-name';
-      nameEl.contentEditable = true;
-      nameEl.spellcheck = false;
-      nameEl.textContent = entry.customName || 'Uploaded files';
-
-      nameEl.addEventListener('blur', () => {
-        updateEntryName(id, nameEl.textContent);
-      });
-      nameEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          nameEl.blur();
-        }
-      });
-
-      const shortUrl = `${window.location.origin}${window.location.pathname}?id=${id}`;
-      const linkEl = document.createElement('a');
-      linkEl.className = 'item-link';
-      linkEl.href = shortUrl;
-      linkEl.target = '_blank';
-      linkEl.rel = 'noopener noreferrer';
-      linkEl.textContent = shortUrl;
-
-      const filesListEl = document.createElement('ul');
-      filesListEl.style.marginTop = '0.5rem';
-      filesListEl.style.paddingLeft = '1.2rem';
-
-      entry.files.forEach(file => {
-        const fLi = document.createElement('li');
-        fLi.style.color = '#aaa';
-        fLi.innerHTML = `<a href="${file.content}" download="${file.name}" style="color:#61dafb;">${escapeHTML(file.name)}</a> — ${file.type || 'unknown'}, ${(file.size / 1024).toFixed(1)} KB`;
-        filesListEl.appendChild(fLi);
-      });
-
-      li.appendChild(nameEl);
-      li.appendChild(linkEl);
-      li.appendChild(filesListEl);
-      listEl.appendChild(li);
-    }
-  }
-
-  function validateAndFormatURL(input) {
-    try {
-      let url = input.trim();
-      if (!url.match(/^https?:\/\//i)) {
-        url = 'https://' + url;
-      }
-      new URL(url);
-      return url;
-    } catch {
-      return null;
-    }
-  }
-
-  // Tab handling
-  const tabs = document.querySelectorAll('.tab');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      if (tab.dataset.tab === 'links') {
-        document.getElementById('linksTab').style.display = 'block';
-        document.getElementById('filesTab').style.display = 'none';
-      } else {
-        document.getElementById('linksTab').style.display = 'none';
-        document.getElementById('filesTab').style.display = 'block';
-      }
-    });
-  });
-
-  document.getElementById('btnCreateLink').addEventListener('click', () => {
-    const input = document.getElementById('inputURL').value.trim();
-    if (!input) {
-      alert('Please enter a URL or text.');
-      return;
-    }
-
-    const formattedUrl = validateAndFormatURL(input);
-
-    if (!formattedUrl) {
-      alert('Invalid URL format. Please enter a valid URL or text.');
-      return;
-    }
-
-    const id = saveEntry({ type: 'text', content: formattedUrl });
-    document.getElementById('inputURL').value = '';
-    renderLinks();
-    switchTab('links');
-    alert('Short link created successfully!');
-  });
-
-  document.getElementById('btnUploadFile').addEventListener('click', () => {
-    const files = document.getElementById('inputFile').files;
-    if (!files.length) {
-      alert('Please select at least one file.');
-      return;
-    }
-
-    const readFiles = [];
-    let filesProcessed = 0;
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const reader = new FileReader();
-
-      reader.onload = e => {
-        readFiles.push({
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          content: e.target.result
-        });
-        filesProcessed++;
-
-        if (filesProcessed === files.length) {
-          const id = saveEntry({ type: 'files', files: readFiles });
-          document.getElementById('inputFile').value = '';
-          renderFiles();
-          switchTab('files');
-          alert('File(s) saved and link created successfully!');
-        }
-      };
-
-      reader.readAsDataURL(file);
-    }
-  });
-
-  function switchTab(name) {
-    tabs.forEach(t => t.classList.remove('active'));
-    tabs.forEach(t => {
-      if (t.dataset.tab === name) {
-        t.classList.add('active');
-      }
-    });
-    document.getElementById('linksTab').style.display = name === 'links' ? 'block' : 'none';
-    document.getElementById('filesTab').style.display = name === 'files' ? 'block' : 'none';
-  }
-
-  // Redirect page with countdown if ?id= is present
-  function redirectCountdown(url) {
-    const waitingEl = document.getElementById('waiting');
-    const countdownEl = document.getElementById('countdown');
-
-    let count = 5;
-    waitingEl.style.display = 'flex';
-
-    const interval = setInterval(() => {
-      count--;
-      countdownEl.textContent = count;
-      if (count === 0) {
-        clearInterval(interval);
-        window.location.href = url;
-      }
-    }, 1000);
-  }
-
-  window.onload = () => {
-    const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
-
-    if (id) {
-      const allEntries = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || '{}');
-      if (!allEntries[id]) {
-        document.body.innerHTML = `<p style="color:#f55; font-weight:bold; text-align:center; margin-top:3rem;">Link not found or expired.</p>`;
-        return;
-      }
-
-      const entry = allEntries[id];
-      if (entry.type === 'text') {
-        redirectCountdown(entry.content);
-      } else if (entry.type === 'files') {
-        let html = `<h2 style="color:#61dafb; text-align:center; margin-top:2rem;">Files stored:</h2><ul style="max-width:600px; margin:1rem auto; padding-left:1rem;">`;
-        entry.files.forEach(f => {
-          html += `<li style="margin-bottom:0.6rem;">
-            <a href="${f.content}" download="${f.name}" style="color:#61dafb;">${f.name}</a> <small style="color:#888;">(${f.type || 'unknown'}, ${(f.size/1024).toFixed(1)} KB)</small>
-          </li>`;
-        });
-        html += `</ul>`;
-        document.body.innerHTML = html;
-      }
-    } else {
-      renderLinks();
-      renderFiles();
-    }
-  };
-</script>
-
-</body>
-</html>
+    <!-- Admin Panel -->
+    <div id="adminPanel" class="section">
+      <h2>Admin Panel</h2>
+      <div class="admin-cards">
+        <div class="admin-card">
+          <h3>Total Links Created</h3>
