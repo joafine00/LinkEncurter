@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LinkShort • Private Shortener</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -45,7 +45,7 @@
       transition: background 0.25s;
     }
 
-    .menu-item:hover {
+    .menu-item:hover, .menu-item.active {
       background: #374151;
     }
 
@@ -102,13 +102,9 @@
       transition: background 0.2s;
     }
 
-    button:hover {
-      background: #005fcc;
-    }
+    button:hover { background: #005fcc; }
 
-    .link-list {
-      margin-top: 15px;
-    }
+    .link-list { margin-top: 15px; }
 
     .link-item {
       background: #f9fafb;
@@ -118,15 +114,9 @@
       margin-bottom: 12px;
     }
 
-    .link-item a {
-      color: #007bff;
-      text-decoration: none;
-      word-break: break-all;
-    }
+    .link-item a { color: #007bff; text-decoration: none; word-break: break-all; }
 
-    .actions {
-      margin-top: 10px;
-    }
+    .actions { margin-top: 10px; }
 
     .actions button {
       margin-right: 6px;
@@ -162,49 +152,111 @@
       text-align: center;
     }
 
-    #redirectPage h1 {
-      margin-bottom: 10px;
-      font-size: 26px;
+    #redirectPage h1 { margin-bottom: 10px; font-size: 26px; }
+    #redirectPage p { color: #b9bbbe; }
+
+    /* Hidden sections */
+    .page { display: none; }
+
+    /* Tool bar */
+    .tools-bar {
+      background: #e8eef8;
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      text-align: center;
     }
 
-    #redirectPage p {
-      color: #b9bbbe;
+    .beta {
+      background: #ffcc00;
+      color: #111;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-left: 8px;
     }
   </style>
 </head>
 <body>
-  <div class="sidebar" id="sidebar">
+  <div class="sidebar">
     <h1>LinkShort</h1>
     <div class="menu">
-      <div class="menu-item">Dashboard</div>
-      <div class="menu-item">My Links</div>
-      <div class="menu-item">Settings</div>
-      <div class="menu-item">About</div>
+      <div class="menu-item active" data-page="dashboard">Dashboard</div>
+      <div class="menu-item" data-page="mylinks">My Links</div>
+      <div class="menu-item" data-page="tools">Tools</div>
+      <div class="menu-item" data-page="settings">Settings</div>
+      <div class="menu-item" data-page="about">About</div>
     </div>
   </div>
 
-  <div class="main" id="mainPage">
+  <div class="main">
     <header>
-      <h2>Dashboard</h2>
+      <h2 id="pageTitle">Dashboard</h2>
       <div class="link-counter" id="linkCounter">Links: 0 / 10</div>
     </header>
 
-    <div class="card">
-      <h3>Create a New Short Link</h3>
-      <input type="text" id="linkName" placeholder="Name for your link (optional)" />
-      <input type="text" id="longUrl" placeholder="Enter URL (https://example.com)" />
-      <button id="shortenBtn">Create Short Link</button>
+    <!-- Dashboard -->
+    <div class="page" id="dashboard" style="display:block;">
+      <div class="tools-bar">
+        <strong>Extensions:</strong> AI Assistant <span class="beta">BETA</span> • Secure Storage • No Ads • Custom Redirects
+      </div>
+      <div class="card">
+        <h3>Create a New Short Link</h3>
+        <input type="text" id="linkName" placeholder="Name for your link (optional)" />
+        <input type="text" id="longUrl" placeholder="Enter URL (https://example.com)" />
+        <button id="shortenBtn">Create Short Link</button>
+      </div>
+      <div class="card">
+        <h3>Your Links</h3>
+        <div id="linkList" class="link-list"></div>
+      </div>
+      <p class="privacy">
+        🔒 All links are encrypted and stored locally on your device.<br />
+        No database, no tracking, full privacy.
+      </p>
     </div>
 
-    <div class="card">
-      <h3>Your Links</h3>
-      <div id="linkList" class="link-list"></div>
+    <!-- My Links -->
+    <div class="page" id="mylinks">
+      <div class="card">
+        <h3>All Links</h3>
+        <div id="allLinks"></div>
+      </div>
     </div>
 
-    <p class="privacy">
-      🔒 All links are encrypted and stored locally on your device.<br />
-      No database, no tracking, full privacy.
-    </p>
+    <!-- Tools -->
+    <div class="page" id="tools">
+      <div class="card">
+        <h3>AI Link Assistant <span class="beta">Experimental BETA</span></h3>
+        <p>Let our built-in assistant help you create your link easily.</p>
+        <button id="startAI">Start AI Assistant</button>
+        <div id="aiArea" style="margin-top:15px; display:none;">
+          <p id="aiQuestion"></p>
+          <input type="text" id="aiAnswer" placeholder="Type your answer here..." />
+          <button id="aiNext">Next</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="page" id="settings">
+      <div class="card">
+        <h3>Settings</h3>
+        <p>This shortener works 100% locally, without ads or accounts.</p>
+        <p>You can reset your stored links here:</p>
+        <button id="resetData">Reset All Links</button>
+      </div>
+    </div>
+
+    <!-- About -->
+    <div class="page" id="about">
+      <div class="card">
+        <h3>About LinkShort</h3>
+        <p>LinkShort is a privacy-focused URL shortener with no ads, no tracking, and full offline functionality.</p>
+        <p>All your data is securely saved in your browser using LocalStorage encryption.</p>
+        <p>Version 1.3 • Developed as an experimental local shortener project.</p>
+      </div>
+    </div>
   </div>
 
   <!-- Redirect Page -->
@@ -218,42 +270,49 @@
     const MAX_LINKS = 10;
     let links = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
 
-    const listContainer = document.getElementById("linkList");
+    // Sidebar navigation
+    const pages = document.querySelectorAll(".page");
+    const menuItems = document.querySelectorAll(".menu-item");
+    const pageTitle = document.getElementById("pageTitle");
+
+    menuItems.forEach(item => {
+      item.addEventListener("click", () => {
+        menuItems.forEach(i => i.classList.remove("active"));
+        item.classList.add("active");
+        const target = item.dataset.page;
+        pages.forEach(p => p.style.display = "none");
+        document.getElementById(target).style.display = "block";
+        pageTitle.textContent = item.textContent;
+        if (target === "mylinks") renderAllLinks();
+      });
+    });
+
+    const linkList = document.getElementById("linkList");
     const linkCounter = document.getElementById("linkCounter");
 
-    // Helper: Encrypt / Decrypt (Base64)
     function encrypt(text) { return btoa(unescape(encodeURIComponent(text))); }
     function decrypt(text) { try { return decodeURIComponent(escape(atob(text))); } catch { return text; } }
 
-    // Helper: Ensure HTTPS protocol
     function ensureProtocol(url) {
       url = url.trim();
       if (!/^https?:\/\//i.test(url)) url = "https://" + url;
       return url;
     }
 
-    // Save links to localStorage
-    function saveLinks() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
-    }
-
-    // Update counter
+    function saveLinks() { localStorage.setItem(STORAGE_KEY, JSON.stringify(links)); }
     function updateCounter() {
       const count = Object.keys(links).length;
       linkCounter.textContent = `Links: ${count} / ${MAX_LINKS}`;
     }
 
-    // Render list of links
     function renderLinks() {
-      listContainer.innerHTML = "";
+      linkList.innerHTML = "";
       const keys = Object.keys(links);
       updateCounter();
-
       if (keys.length === 0) {
-        listContainer.innerHTML = "<p>No links created yet.</p>";
+        linkList.innerHTML = "<p>No links created yet.</p>";
         return;
       }
-
       keys.forEach(code => {
         const link = links[code];
         const shortUrl = `${window.location.origin}${window.location.pathname}?c=${code}`;
@@ -268,23 +327,34 @@
             <button class="btn-copy" onclick="copyLink('${shortUrl}')">Copy</button>
             <button class="btn-edit" onclick="editLink('${code}')">Edit</button>
             <button class="btn-delete" onclick="deleteLink('${code}')">Delete</button>
-          </div>
-        `;
-        listContainer.appendChild(div);
+          </div>`;
+        linkList.appendChild(div);
       });
     }
 
-    // Copy link
-    function copyLink(link) {
-      navigator.clipboard.writeText(link);
-      alert("Short link copied to clipboard!");
+    function renderAllLinks() {
+      const area = document.getElementById("allLinks");
+      area.innerHTML = "";
+      const keys = Object.keys(links);
+      if (keys.length === 0) {
+        area.innerHTML = "<p>No links stored.</p>";
+        return;
+      }
+      keys.forEach(k => {
+        const l = links[k];
+        area.innerHTML += `<p><strong>${l.name}</strong> → ${decrypt(l.url)} (${l.views} views)</p>`;
+      });
     }
 
-    // Edit link
+    function copyLink(link) {
+      navigator.clipboard.writeText(link);
+      alert("Short link copied!");
+    }
+
     function editLink(code) {
       const link = links[code];
       const newName = prompt("Edit link name:", link.name || "");
-      const newUrl = prompt("Edit destination URL:", decrypt(link.url));
+      const newUrl = prompt("Edit URL:", decrypt(link.url));
       if (!newUrl) return;
       links[code].name = newName;
       links[code].url = encrypt(ensureProtocol(newUrl));
@@ -292,64 +362,84 @@
       renderLinks();
     }
 
-    // Delete link
     function deleteLink(code) {
-      if (!confirm("Are you sure you want to delete this link?")) return;
+      if (!confirm("Delete this link?")) return;
       delete links[code];
       saveLinks();
       renderLinks();
     }
 
-    // Create new short link
     document.getElementById("shortenBtn").addEventListener("click", () => {
       const currentCount = Object.keys(links).length;
-      if (currentCount >= MAX_LINKS) {
-        alert(`You’ve reached your limit of ${MAX_LINKS} links.`);
-        return;
-      }
-
+      if (currentCount >= MAX_LINKS) return alert("You reached your limit of " + MAX_LINKS);
       let url = document.getElementById("longUrl").value;
       const name = document.getElementById("linkName").value.trim();
-
-      if (!url) return alert("Please enter a valid URL.");
+      if (!url) return alert("Enter a valid URL.");
       url = ensureProtocol(url);
-
       const code = Math.random().toString(36).substring(2, 8);
-      links[code] = {
-        name: name || `Link ${currentCount + 1}`,
-        url: encrypt(url),
-        views: 0,
-        createdAt: new Date().toISOString()
-      };
-
-      saveLinks();
-      renderLinks();
-
-      document.getElementById("linkName").value = "";
+      links[code] = { name: name || "Link " + (currentCount + 1), url: encrypt(url), views: 0 };
+      saveLinks(); renderLinks();
       document.getElementById("longUrl").value = "";
+      document.getElementById("linkName").value = "";
     });
 
-    // Check redirect mode
+    document.getElementById("resetData").addEventListener("click", () => {
+      if (confirm("This will delete all stored links. Continue?")) {
+        localStorage.removeItem(STORAGE_KEY);
+        links = {};
+        renderLinks();
+      }
+    });
+
+    // AI Assistant
+    const aiBtn = document.getElementById("startAI");
+    const aiArea = document.getElementById("aiArea");
+    const aiQuestion = document.getElementById("aiQuestion");
+    const aiAnswer = document.getElementById("aiAnswer");
+    const aiNext = document.getElementById("aiNext");
+    let aiStep = 0;
+    let aiData = {};
+
+    aiBtn.onclick = () => {
+      aiArea.style.display = "block";
+      aiBtn.style.display = "none";
+      aiQuestion.textContent = "What will be the name of your link?";
+      aiStep = 1;
+    };
+
+    aiNext.onclick = () => {
+      const answer = aiAnswer.value.trim();
+      if (aiStep === 1) {
+        aiData.name = answer || "Unnamed";
+        aiQuestion.textContent = "What is the destination URL of your link?";
+        aiAnswer.value = "";
+        aiStep = 2;
+      } else if (aiStep === 2) {
+        let url = ensureProtocol(answer);
+        aiData.url = encrypt(url);
+        const code = Math.random().toString(36).substring(2, 8);
+        links[code] = { name: aiData.name, url: aiData.url, views: 0 };
+        saveLinks();
+        aiQuestion.textContent = "All set! You can now access your dashboard to view created links.";
+        aiAnswer.style.display = "none";
+        aiNext.style.display = "none";
+        renderLinks();
+      }
+    };
+
+    // Redirect
     const params = new URLSearchParams(window.location.search);
     const codeParam = params.get("c");
-
     if (codeParam && links[codeParam]) {
-      // Redirect page visible only when link is valid
       document.body.style.background = "#202225";
-      document.getElementById("sidebar").style.display = "none";
-      document.getElementById("mainPage").style.display = "none";
-
+      document.querySelector(".sidebar").style.display = "none";
+      document.querySelector(".main").style.display = "none";
       const redirectPage = document.getElementById("redirectPage");
       redirectPage.style.display = "flex";
-
       links[codeParam].views = (links[codeParam].views || 0) + 1;
       saveLinks();
-
-      setTimeout(() => {
-        window.location.href = decrypt(links[codeParam].url);
-      }, 2000);
+      setTimeout(() => window.location.href = decrypt(links[codeParam].url), 2000);
     } else {
-      // Normal mode — show dashboard
       renderLinks();
     }
   </script>
