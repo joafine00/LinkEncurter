@@ -1,169 +1,350 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Link Curto & Upload Local</title>
+<title>Simple Shortener & File Storage</title>
 <style>
-  body { font-family: Arial, sans-serif; max-width: 600px; margin: 2rem auto; padding: 1rem; }
-  input, button { padding: 0.5rem; font-size: 1rem; margin: 0.5rem 0; width: 100%; }
-  #waiting { display: none; font-size: 1.2rem; margin-top: 2rem; text-align: center; }
-  #linksList { margin-top: 1rem; }
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    background: #121212;
+    color: #eee;
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+  }
+
+  h1 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #61dafb;
+  }
+
+  label {
+    display: block;
+    margin-top: 1.5rem;
+    font-weight: 600;
+    color: #bbb;
+  }
+
+  input[type="text"],
+  input[type="file"] {
+    width: 100%;
+    max-width: 480px;
+    background: #222;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: #eee;
+    font-size: 1rem;
+    margin-top: 0.4rem;
+    transition: background 0.3s ease;
+  }
+
+  input[type="text"]:focus,
+  input[type="file"]:focus {
+    outline: none;
+    background: #333;
+  }
+
+  button {
+    margin-top: 1rem;
+    max-width: 480px;
+    width: 100%;
+    padding: 14px;
+    background: #61dafb;
+    color: #121212;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.25s ease;
+  }
+
+  button:hover {
+    background: #21a1f1;
+  }
+
+  #waiting {
+    margin-top: 3rem;
+    font-size: 1.5rem;
+    color: #61dafb;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+  }
+
+  #countdown {
+    font-weight: 700;
+    font-size: 3rem;
+    margin-top: 0.5rem;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  #linksList {
+    margin-top: 2rem;
+    max-width: 480px;
+    width: 100%;
+    list-style: none;
+    padding: 0;
+  }
+
+  #linksList li {
+    background: #222;
+    border-radius: 8px;
+    margin-bottom: 0.8rem;
+    padding: 12px 16px;
+    word-break: break-word;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ccc;
+    transition: background 0.3s ease;
+  }
+
+  #linksList li:hover {
+    background: #333;
+  }
+
+  #linksList a {
+    color: #61dafb;
+    text-decoration: none;
+    font-weight: 600;
+    flex-grow: 1;
+  }
+
+  #linksList span {
+    font-size: 0.85rem;
+    color: #888;
+    margin-left: 1rem;
+    white-space: nowrap;
+  }
+
+  pre {
+    background: #222;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    max-width: 480px;
+    color: #ccc;
+  }
+
+  ul.file-list {
+    max-width: 480px;
+    padding-left: 1rem;
+  }
+
+  ul.file-list li a {
+    color: #61dafb;
+    text-decoration: none;
+  }
 </style>
 </head>
 <body>
 
-<h1>Link Curto & Upload Local</h1>
+<h1>Simple Link Shortener & File Storage</h1>
 
-<!-- Criar Link Curto -->
-<label for="inputURL">Cole o link ou texto:</label>
-<input id="inputURL" placeholder="Cole o link ou texto aqui" />
-<button id="btnCreateLink">Criar Link Curto</button>
+<label for="inputURL">Enter URL or text:</label>
+<input id="inputURL" type="text" placeholder="Paste your URL or any text here" autocomplete="off" />
 
-<!-- Upload arquivo -->
-<label for="inputFile">Ou faça upload de arquivo:</label>
-<input type="file" id="inputFile" multiple />
-<button id="btnUploadFile">Salvar Arquivo(s)</button>
+<button id="btnCreateLink">Create Short Link</button>
 
-<div id="waiting">Aguarde <span id="countdown">5</span> segundos...</div>
+<label for="inputFile">Or upload file(s):</label>
+<input id="inputFile" type="file" multiple />
 
-<h2>Links Criados:</h2>
+<button id="btnUploadFile">Save File(s) & Get Link</button>
+
+<div id="waiting" style="display:none;">
+  Redirecting in <span id="countdown">5</span> seconds...
+</div>
+
+<h2>Your Shortened Links:</h2>
 <ul id="linksList"></ul>
 
 <script>
-const LS_KEY = 'local_short_links';
+  const STORAGE_KEY = 'shortener_links';
 
-// Função para salvar link/arquivo no localStorage
-function saveLink(data) {
-  let allLinks = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-  // Criar ID simples (timestamp + aleatório)
-  let id = 'link_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-  allLinks[id] = data;
-  localStorage.setItem(LS_KEY, JSON.stringify(allLinks));
-  return id;
-}
-
-// Função para mostrar links criados na tela
-function renderLinks() {
-  let allLinks = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-  const ul = document.getElementById('linksList');
-  ul.innerHTML = '';
-  for(let id in allLinks){
-    let li = document.createElement('li');
-    li.innerHTML = `<a href="?id=${id}" target="_blank">${id}</a> (${allLinks[id].type})`;
-    ul.appendChild(li);
-  }
-}
-
-// Quando clicar em criar link curto
-document.getElementById('btnCreateLink').onclick = () => {
-  let url = document.getElementById('inputURL').value.trim();
-  if(!url){
-    alert('Coloque um link ou texto válido!');
-    return;
-  }
-  let data = {type: 'text', content: url};
-  let id = saveLink(data);
-  alert('Link criado: ' + window.location.origin + window.location.pathname + '?id=' + id);
-  renderLinks();
-  document.getElementById('inputURL').value = '';
-};
-
-// Quando clicar em upload de arquivo
-document.getElementById('btnUploadFile').onclick = () => {
-  let inputFile = document.getElementById('inputFile');
-  if(inputFile.files.length === 0){
-    alert('Selecione pelo menos um arquivo.');
-    return;
-  }
-  let filesData = [];
-  let promises = [];
-
-  for(let file of inputFile.files){
-    let p = new Promise((resolve) => {
-      let reader = new FileReader();
-      reader.onload = () => {
-        // Guardar base64 do arquivo
-        filesData.push({
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          content: reader.result
-        });
-        resolve();
-      };
-      reader.readAsDataURL(file);
-    });
-    promises.push(p);
+  // Save a new link or file set to localStorage
+  function saveEntry(data) {
+    const allEntries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const id = 'id_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+    allEntries[id] = data;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allEntries));
+    return id;
   }
 
-  Promise.all(promises).then(() => {
-    try {
-      let data = {type: 'files', files: filesData};
-      let id = saveLink(data);
-      alert('Arquivo(s) salvo(s)! Link: ' + window.location.origin + window.location.pathname + '?id=' + id);
-      renderLinks();
-      inputFile.value = '';
-    } catch(e) {
-      alert('Erro ao salvar arquivos. Talvez excedeu o limite do localStorage.');
+  // Render the list of links below
+  function renderLinks() {
+    const listEl = document.getElementById('linksList');
+    const allEntries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    listEl.innerHTML = '';
+
+    if (Object.keys(allEntries).length === 0) {
+      listEl.innerHTML = '<li style="color:#666;">No links created yet.</li>';
+      return;
     }
+
+    for (const id in allEntries) {
+      const entry = allEntries[id];
+      const li = document.createElement('li');
+      const url = `${window.location.origin}${window.location.pathname}?id=${id}`;
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.textContent = url;
+
+      const typeSpan = document.createElement('span');
+      typeSpan.textContent = entry.type === 'text' ? 'Text/URL' : 'File(s)';
+
+      li.appendChild(a);
+      li.appendChild(typeSpan);
+      listEl.appendChild(li);
+    }
+  }
+
+  // Handle create link button click
+  document.getElementById('btnCreateLink').addEventListener('click', () => {
+    const input = document.getElementById('inputURL');
+    const val = input.value.trim();
+    if (!val) {
+      alert('Please enter a URL or text.');
+      return;
+    }
+    // Autocorrect to https:// if looks like URL without scheme
+    let corrected = val;
+    if (/^[^:]+(\.[^:]+)+/.test(val) && !/^https?:\/\//i.test(val)) {
+      corrected = 'https://' + val;
+    }
+    const data = { type: 'text', content: corrected };
+    const id = saveEntry(data);
+    alert(`Short link created:\n${window.location.origin}${window.location.pathname}?id=${id}`);
+    input.value = '';
+    renderLinks();
   });
-};
 
-// Tela de espera e redirecionamento
-function handleRedirect(id) {
-  let allLinks = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
-  if(!allLinks[id]){
-    document.body.innerHTML = '<h2>Link não encontrado.</h2>';
-    return;
-  }
-  let countdownEl = document.getElementById('countdown');
-  let waitingEl = document.getElementById('waiting');
-  waitingEl.style.display = 'block';
-
-  let count = 5;
-  let interval = setInterval(() => {
-    count--;
-    countdownEl.textContent = count;
-    if(count === 0){
-      clearInterval(interval);
-      // Agora redireciona ou mostra conteúdo
-      let data = allLinks[id];
-      if(data.type === 'text'){
-        // Redireciona para link se começar com http/https
-        if(data.content.startsWith('http://') || data.content.startsWith('https://')){
-          window.location.href = data.content;
-        } else {
-          // Só mostra o texto
-          document.body.innerHTML = `<h2>Conteúdo:</h2><pre>${data.content}</pre>`;
-        }
-      } else if(data.type === 'files'){
-        // Mostrar links para baixar os arquivos
-        let html = '<h2>Arquivos:</h2><ul>';
-        for(let f of data.files){
-          html += `<li><a href="${f.content}" download="${f.name}">${f.name} (${(f.size/1024).toFixed(1)} KB)</a></li>`;
-        }
-        html += '</ul>';
-        document.body.innerHTML = html;
-      }
+  // Handle file upload and save
+  document.getElementById('btnUploadFile').addEventListener('click', () => {
+    const inputFile = document.getElementById('inputFile');
+    if (inputFile.files.length === 0) {
+      alert('Please select one or more files.');
+      return;
     }
-  }, 1000);
-}
+    const filesData = [];
+    const readers = [];
 
-function getQueryParam(param) {
-  let urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get(param);
-}
+    for (const file of inputFile.files) {
+      const reader = new FileReader();
+      readers.push(new Promise((resolve) => {
+        reader.onload = () => {
+          filesData.push({
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            content: reader.result
+          });
+          resolve();
+        };
+        reader.readAsDataURL(file);
+      }));
+    }
 
-window.onload = () => {
-  renderLinks();
-  let id = getQueryParam('id');
-  if(id){
-    // Se tem ?id= na URL, inicia a espera e depois mostra ou redireciona
-    document.body.innerHTML = '<div id="waiting">Aguarde <span id="countdown">5</span> segundos...</div>';
-    handleRedirect(id);
+    Promise.all(readers).then(() => {
+      try {
+        const data = { type: 'files', files: filesData };
+        const id = saveEntry(data);
+        alert(`File(s) saved! Short link:\n${window.location.origin}${window.location.pathname}?id=${id}`);
+        inputFile.value = '';
+        renderLinks();
+      } catch (e) {
+        alert('Error saving files. Maybe you exceeded localStorage quota.');
+      }
+    });
+  });
+
+  // Get query param from URL
+  function getParam(param) {
+    return new URLSearchParams(window.location.search).get(param);
   }
-};
+
+  // Show countdown then redirect or show content
+  function startRedirect(id) {
+    const allEntries = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    if (!allEntries[id]) {
+      document.body.innerHTML = `<h2 style="color:#f44336;">Link not found!</h2>`;
+      return;
+    }
+
+    const waitingDiv = document.createElement('div');
+    waitingDiv.id = 'waiting';
+    waitingDiv.innerHTML = 'Redirecting in <span id="countdown">5</span> seconds...';
+    document.body.innerHTML = '';
+    document.body.appendChild(waitingDiv);
+
+    let countdown = 5;
+    const countdownEl = document.getElementById('countdown');
+
+    const interval = setInterval(() => {
+      countdown--;
+      countdownEl.textContent = countdown;
+      if (countdown <= 0) {
+        clearInterval(interval);
+        const data = allEntries[id];
+
+        if (data.type === 'text') {
+          // If looks like URL, redirect
+          if (/^https?:\/\//i.test(data.content)) {
+            window.location.href = data.content;
+          } else {
+            // Show text content
+            document.body.innerHTML = `
+              <h2>Text Content:</h2>
+              <pre>${escapeHTML(data.content)}</pre>
+            `;
+          }
+        } else if (data.type === 'files') {
+          // Show file download links
+          let html = '<h2>Your Files:</h2><ul class="file-list">';
+          data.files.forEach(f => {
+            html += `<li><a href="${f.content}" download="${encodeURIComponent(f.name)}">${escapeHTML(f.name)}</a> (${(f.size/1024).toFixed(1)} KB)</li>`;
+          });
+          html += '</ul>';
+          document.body.innerHTML = html;
+        }
+      }
+    }, 1000);
+  }
+
+  // Simple HTML escape helper
+  function escapeHTML(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  window.onload = () => {
+    renderLinks();
+    const id = getParam('id');
+    if (id) {
+      startRedirect(id);
+    }
+  };
 </script>
 
 </body>
