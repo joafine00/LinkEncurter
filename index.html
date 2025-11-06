@@ -39,7 +39,7 @@ body{display:flex;height:100vh;background:#18191c;color:#fff;overflow:hidden}
 .section{display:none}
 .section.active{display:block}
 
-/* Buttons and forms */
+/* Buttons and inputs */
 button{
   background:#5865f2;color:white;border:none;padding:10px 16px;
   border-radius:6px;cursor:pointer;transition:0.2s
@@ -53,12 +53,29 @@ input{
   background:#202225;border-radius:8px;padding:12px;margin:10px 0;
   display:flex;justify-content:space-between;align-items:center
 }
+.link-card a{color:#7289da;text-decoration:none}
+.link-card small{color:#ccc}
 
 /* Redirect */
 .redirect{
   display:flex;flex-direction:column;justify-content:center;align-items:center;
-  height:100vh;background:#18191c;color:#fff
+  height:100vh;width:100vw;background:linear-gradient(180deg,#18191c,#202225);
+  color:#fff;text-align:center;padding:20px
 }
+.redirect h2{font-size:24px;margin-bottom:10px;color:#7289da}
+.redirect p{color:#ccc;margin-bottom:10px}
+.progress-bar{
+  width:220px;height:6px;background:#2f3136;
+  border-radius:3px;overflow:hidden;margin-top:10px
+}
+.progress{
+  width:0%;height:100%;background:#5865f2;transition:width 2.5s linear
+}
+.redirect button{
+  margin-top:15px;background:#40444b;color:#fff;
+  border:none;padding:8px 14px;border-radius:5px;cursor:pointer
+}
+.redirect button:hover{background:#5865f2}
 </style>
 </head>
 <body>
@@ -66,6 +83,9 @@ input{
 <!-- Redirect Page -->
 <div id="redirectPage" class="redirect" style="display:none">
   <h2>Redirecting...</h2>
+  <p id="redirectMsg">Please wait, you will be redirected shortly.</p>
+  <div class="progress-bar"><div class="progress" id="progress"></div></div>
+  <button id="cancelBtn">Cancel</button>
 </div>
 
 <!-- Sidebar -->
@@ -102,10 +122,10 @@ input{
     <!-- About -->
     <div id="about" class="section">
       <h2>About LinkShort</h2>
-      <p>LinkShort is a privacy-first, ad-free link shortener that stores all your data locally using LocalStorage.</p>
-      <p>No ads. No servers. Everything stays in your browser.</p>
-      <p>You can create up to <strong>10 links per account</strong>, stored locally in your browser’s memory.</p>
-      <p>Your links, names, and view counts remain private and accessible only to you on this device.</p>
+      <p>LinkShort is a privacy-first, ad-free link shortener that works entirely in your browser using LocalStorage.</p>
+      <p>No servers, no tracking — everything is stored locally on your device.</p>
+      <p>You can create up to <strong>10 links</strong> per browser account.</p>
+      <p>All your links and view counts are stored privately and securely inside your browser’s storage.</p>
     </div>
 
   </div>
@@ -115,25 +135,39 @@ input{
 /* ---------- Redirect Handling ---------- */
 const params=new URLSearchParams(window.location.search);
 if(params.has('c')){
-  document.body.innerHTML='';
-  const div=document.createElement('div');
-  div.className='redirect';
-  div.innerHTML=`<h2>Redirecting...</h2><p>Please wait, you will be redirected shortly.</p>`;
-  document.body.appendChild(div);
+  document.getElementById('sidebar').style.display='none';
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('redirectPage').style.display='flex';
 
   const code=params.get('c');
   const data=JSON.parse(localStorage.getItem('links')||'[]');
   const link=data.find(l=>l.code===code);
+  const msg=document.getElementById('redirectMsg');
+  const progress=document.getElementById('progress');
+  const cancel=document.getElementById('cancelBtn');
+
   if(link){
     link.views=(link.views||0)+1;
     localStorage.setItem('links',JSON.stringify(data));
-    setTimeout(()=>{window.location.href=link.url;},2000);
+
+    msg.innerHTML=`Redirecting to:<br><strong>${link.name}</strong><br><small>${link.url}</small>`;
+    setTimeout(()=>{progress.style.width='100%';},100);
+    const timer=setTimeout(()=>{window.location.href=link.url;},2500);
+
+    cancel.onclick=()=>{
+      clearTimeout(timer);
+      msg.textContent='Redirection canceled.';
+      progress.style.width='0';
+      cancel.style.display='none';
+    };
   } else {
-    div.innerHTML='<h2>Invalid link!</h2><p>The link you tried to access does not exist.</p>';
+    msg.textContent='Invalid or expired link.';
+    progress.style.display='none';
+    cancel.style.display='none';
   }
 }
 
-/* ---------- App Logic ---------- */
+/* ---------- Main App ---------- */
 const sections=document.querySelectorAll('.section');
 const sidebarLinks=document.querySelectorAll('.sidebar a');
 const pageTitle=document.getElementById('pageTitle');
@@ -194,7 +228,7 @@ function renderLinks(){
     div.innerHTML=`
       <div>
         <strong>${l.name}</strong><br>
-        <small><a href="?c=${l.code}" style="color:#7289da">?c=${l.code}</a></small><br>
+        <small><a href="?c=${l.code}">${window.location.origin}?c=${l.code}</a></small><br>
         <small>${l.url}</small><br>
         <small>Views: ${l.views||0}</small>
       </div>
