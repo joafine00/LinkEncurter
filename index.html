@@ -1,752 +1,303 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>LinkShort - Dashboard</title>
-<style>
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  body {
-    display: flex;
-    height: 100vh;
-    background: #18191c;
-    color: #fff;
-    overflow: hidden;
-  }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>URL Shortener + Admin Panel</title>
 
-  /* Sidebar */
-  .sidebar {
-    width: 250px;
-    background: #202225;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 20px 0;
-    border-right: 1px solid #2f3136;
-  }
-  .sidebar h2 {
-    font-size: 26px;
-    color: #7289da;
-    margin-left: 25px;
-    margin-bottom: 25px;
-    user-select: none;
-  }
-  .sidebar a {
-    color: #ccc;
-    text-decoration: none;
-    padding: 14px 30px;
-    width: 100%;
-    display: block;
-    transition: background-color 0.3s ease;
-    font-weight: 600;
-  }
-  .sidebar a:hover,
-  .sidebar a.active {
-    background: #5865f2;
-    color: #fff;
-  }
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- ApexCharts -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-  /* Main */
-  .main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: #2f3136;
-  }
-  .topbar {
-    height: 60px;
-    background: #202225;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 25px;
-    border-bottom: 1px solid #2f3136;
-  }
-  .topbar h1 {
-    font-size: 22px;
-    color: #fff;
-  }
-  #statsDisplay {
-    font-weight: 600;
-    color: #ccc;
-  }
-
-  .content {
-    padding: 25px;
-    overflow-y: auto;
-    flex: 1;
-  }
-
-  /* Sections */
-  .section {
-    display: none;
-  }
-  .section.active {
-    display: block;
-  }
-
-  /* Buttons and inputs */
-  button {
-    background: #5865f2;
-    color: white;
-    border: none;
-    padding: 12px 18px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
-    margin-top: 8px;
-  }
-  button:hover {
-    background: #4752c4;
-  }
-  input {
-    background: #40444b;
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    padding: 12px;
-    width: 100%;
-    margin-bottom: 15px;
-    font-size: 16px;
-  }
-
-  .link-card {
-    background: #202225;
-    border-radius: 8px;
-    padding: 14px 18px;
-    margin: 12px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.5);
-  }
-  .link-card a {
-    color: #7289da;
-    text-decoration: none;
-    font-weight: 600;
-  }
-  .link-card small {
-    color: #bbb;
-    font-size: 13px;
-  }
-  .link-info {
-    max-width: 75%;
-  }
-
-  /* Redirect */
-  .redirect {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    width: 100vw;
-    background: linear-gradient(180deg, #18191c, #202225);
-    color: #fff;
-    text-align: center;
-    padding: 25px;
-  }
-  .redirect h2 {
-    font-size: 26px;
-    margin-bottom: 14px;
-    color: #7289da;
-    user-select: none;
-  }
-  .redirect p {
-    color: #ccc;
-    margin-bottom: 14px;
-    font-size: 17px;
-  }
-  .progress-bar {
-    width: 240px;
-    height: 8px;
-    background: #2f3136;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-top: 15px;
-  }
-  .progress {
-    width: 0%;
-    height: 100%;
-    background: #5865f2;
-    transition: width 5s linear;
-  }
-  .redirect button {
-    margin-top: 18px;
-    background: #40444b;
-    color: #fff;
-    border: none;
-    padding: 10px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-  }
-  .redirect button:hover {
-    background: #5865f2;
-  }
-
-  /* Admin Panel */
-  .admin-cards {
-    display: flex;
-    gap: 18px;
-    margin-bottom: 30px;
-    flex-wrap: wrap;
-  }
-  .admin-card {
-    background: #202225;
-    border-radius: 10px;
-    padding: 18px 22px;
-    flex: 1 1 280px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  }
-  .admin-card h3 {
-    margin-bottom: 12px;
-    color: #7289da;
-    user-select: none;
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #202225;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.6);
-  }
-  th, td {
-    padding: 12px 16px;
-    color: #ccc;
-    text-align: left;
-    font-size: 14px;
-  }
-  th {
-    background: #2f3136;
-  }
-  tr:nth-child(even) {
-    background: #2a2c30;
-  }
-  tr:hover {
-    background: #5865f2;
-    color: #fff;
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar {
-    width: 10px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #202225;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #5865f2;
-    border-radius: 5px;
-  }
-</style>
-
-<!-- ApexCharts CDN -->
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <style>
+    body.dark {
+      background-color: #0b0b0f;
+      color: #e0e0e0;
+      font-family: 'Inter', sans-serif;
+    }
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+  </style>
 </head>
-<body>
+<body class="dark">
 
-<!-- Redirect Page -->
-<div id="redirectPage" class="redirect" style="display:none">
-  <h2>Redirecting...</h2>
-  <p id="redirectMsg">Please wait, you will be redirected shortly.</p>
-  <div class="progress-bar"><div class="progress" id="progress"></div></div>
-  <button id="cancelBtn">Cancel</button>
-</div>
-
-<!-- Sidebar -->
-<div class="sidebar" id="sidebar">
-  <h2>LinkShort</h2>
-  <a href="#" class="active" data-target="dashboard">Dashboard</a>
-  <a href="#" data-target="mylinks">My Links</a>
-  <a href="#" data-target="about">About</a>
-  <a href="#" data-target="adminPanel">Admin Panel</a>
-</div>
-
-<!-- Main -->
-<div class="main" id="mainApp">
-  <div class="topbar">
-    <h1 id="pageTitle">Dashboard</h1>
-    <div id="statsDisplay">0 / 10 links</div>
-  </div>
-  <div class="content">
-
-    <!-- Dashboard -->
-    <div id="dashboard" class="section active">
-      <h2>Create a new short link</h2>
-      <input type="text" id="linkName" placeholder="Enter link name" autocomplete="off" />
-      <input type="text" id="linkUrl" placeholder="Enter destination URL (https://example.com)" autocomplete="off" />
-      <button id="createBtn">Create Link</button>
-      <p id="statusMsg"></p>
-    </div>
-
-    <!-- My Links -->
-    <div id="mylinks" class="section">
-      <h2>Your Links</h2>
-      <div id="linksList"></div>
-    </div>
-
-    <!-- About -->
-    <div id="about" class="section">
-      <h2>About LinkShort</h2>
-      <p>LinkShort is a privacy-first, ad-free link shortener that works entirely in your browser using LocalStorage.</p>
-      <p>No servers, no tracking — everything is stored locally on your device.</p>
-      <p>You can create up to <strong>10 links</strong> per browser account.</p>
-      <p>All your links and view counts are stored privately and securely inside your browser’s storage.</p>
-    </div>
-
-    <!-- Admin Panel -->
-    <div id="adminPanel" class="section">
-      <h2>Admin Panel</h2>
-
-      <div class="admin-cards">
-        <div class="admin-card">
-          <h3>Total Links Created</h3>
-          <div id="totalLinks" style="font-size:28px; font-weight:bold; color:#7289da;">0</div>
-        </div>
-        <div class="admin-card">
-          <h3>Total Views</h3>
-          <div id="totalViews" style="font-size:28px; font-weight:bold; color:#7289da;">0</div>
-        </div>
-        <div class="admin-card">
-          <h3>Suspicious Attempts</h3>
-          <div id="suspiciousCount" style="font-size:28px; font-weight:bold; color:#7289da;">0</div>
-        </div>
-      </div>
-
-      <div id="charts">
-        <div id="linksChart" style="height: 300px; margin-bottom: 30px;"></div>
-        <div id="viewsChart" style="height: 300px; margin-bottom: 30px;"></div>
-        <div id="suspiciousChart" style="height: 300px;"></div>
-      </div>
-
-      <h3>Suspicious Attempts Log</h3>
-      <table id="attemptsTable">
-        <thead>
-          <tr><th>Timestamp</th><th>Link Name</th><th>IP/User Agent (mock)</th></tr>
-        </thead>
-        <tbody>
-        </tbody>
-      </table>
-
+  <!-- Login Overlay -->
+  <div id="overlay" class="flex">
+    <div class="bg-gray-900 rounded-xl p-8 w-96 shadow-2xl">
+      <h2 class="text-2xl mb-6 font-semibold text-indigo-400">Admin Login</h2>
+      <input id="passwordInput" type="password" placeholder="Admin password"
+             class="w-full p-3 rounded bg-gray-800 border border-gray-700 focus:outline-indigo-500 text-white mb-4" />
+      <button id="loginBtn" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 rounded text-white font-semibold">Login</button>
+      <p id="loginError" class="mt-3 text-red-500 hidden">Wrong password.</p>
     </div>
   </div>
-</div>
+
+  <div id="app" class="min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="flex justify-between items-center px-8 py-4 bg-gray-900 shadow-lg">
+      <h1 class="text-xl font-bold text-indigo-400 cursor-pointer" id="homeBtn">Shortify</h1>
+      <nav class="space-x-6">
+        <button class="navBtn text-gray-300 hover:text-indigo-400 font-medium" data-page="home">Home</button>
+        <button class="navBtn text-gray-300 hover:text-indigo-400 font-medium" data-page="admin" id="adminNavBtn" style="display:none;">Admin Panel</button>
+      </nav>
+      <button id="logoutBtn" class="text-red-500 font-semibold hidden">Logout</button>
+    </header>
+
+    <!-- Main -->
+    <main class="flex-grow p-8 max-w-7xl mx-auto w-full">
+
+      <!-- Home -->
+      <section id="page-home">
+        <h2 class="text-3xl font-semibold mb-6 text-indigo-400">Shorten your link</h2>
+        <form id="linkForm" class="flex flex-col max-w-md space-y-4">
+          <input id="linkName" type="text" placeholder="Custom short name" required
+                 class="p-3 rounded bg-gray-800 border border-gray-700 focus:outline-indigo-500 text-white" />
+          <input id="linkUrl" type="url" placeholder="Original URL (https://...)" required
+                 class="p-3 rounded bg-gray-800 border border-gray-700 focus:outline-indigo-500 text-white" />
+          <button type="submit" 
+                  class="py-3 bg-indigo-600 hover:bg-indigo-700 rounded text-white font-semibold transition">Create Link</button>
+        </form>
+
+        <h3 class="text-xl font-semibold mt-12 mb-4 text-indigo-400">Created Links</h3>
+        <div id="linksList" class="space-y-4"></div>
+      </section>
+
+      <!-- Admin -->
+      <section id="page-admin" class="hidden">
+        <h2 class="text-3xl font-semibold mb-8 text-indigo-400">Admin Dashboard</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div class="bg-gray-800 rounded-xl p-6 text-center shadow-lg">
+            <h3 class="text-lg font-semibold mb-2">Total Links</h3>
+            <p id="totalLinks" class="text-4xl font-bold text-indigo-400">0</p>
+          </div>
+          <div class="bg-gray-800 rounded-xl p-6 text-center shadow-lg">
+            <h3 class="text-lg font-semibold mb-2">Total Views</h3>
+            <p id="totalViews" class="text-4xl font-bold text-indigo-400">0</p>
+          </div>
+          <div class="bg-gray-800 rounded-xl p-6 text-center shadow-lg">
+            <h3 class="text-lg font-semibold mb-2">Suspicious Attempts</h3>
+            <p id="totalSuspicious" class="text-4xl font-bold text-indigo-400">0</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <div>
+            <h4 class="text-lg font-semibold mb-4">Links Created</h4>
+            <div id="chartLinks"></div>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold mb-4">Views per Link</h4>
+            <div id="chartViews"></div>
+          </div>
+          <div>
+            <h4 class="text-lg font-semibold mb-4">Suspicious Attempts</h4>
+            <div id="chartSuspicious"></div>
+          </div>
+        </div>
+
+        <h3 class="text-2xl font-semibold mb-4 text-indigo-400">Suspicious Activity Log</h3>
+        <div class="overflow-auto max-h-64 rounded border border-gray-700 bg-gray-900">
+          <table class="min-w-full text-left text-sm text-gray-300">
+            <thead class="border-b border-gray-700 bg-gray-800 sticky top-0">
+              <tr>
+                <th class="p-3">Date / Time</th>
+                <th class="p-3">Link</th>
+                <th class="p-3">User Agent</th>
+              </tr>
+            </thead>
+            <tbody id="suspiciousLog"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Redirect overlay -->
+      <div id="redirectOverlay" class="fixed inset-0 bg-black bg-opacity-90 flex flex-col justify-center items-center text-center p-6 text-white z-50 hidden">
+        <p id="redirectMsg" class="text-2xl mb-6"></p>
+        <div class="w-64 h-4 bg-gray-700 rounded overflow-hidden mb-6">
+          <div id="progressBar" class="h-full bg-indigo-500 w-0 transition-all"></div>
+        </div>
+        <button id="cancelRedirectBtn" class="px-6 py-2 bg-red-600 hover:bg-red-700 rounded font-semibold">Cancel</button>
+      </div>
+
+    </main>
+  </div>
 
 <script>
 (() => {
-  // Limits & config
-  const MAX_LINKS = 10;
-  const REDIRECT_TIME = 5000; // 5 seconds
+  const ADMIN_PASS = "admin123"; 
+  const MAX_LINKS = 50;
+  const REDIRECT_DELAY = 5000;
 
-  // Helpers
-  function saveData(data) {
-    localStorage.setItem('linkShortData', JSON.stringify(data));
-  }
-  function loadData() {
-    const raw = localStorage.getItem('linkShortData');
-    if (!raw) return { links: [], attempts: [] };
-    try {
-      return JSON.parse(raw);
-    } catch {
-      return { links: [], attempts: [] };
-    }
-  }
-  function sanitize(str) {
-    return String(str).replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  }
-  function isValidURL(str) {
-    try {
-      const url = new URL(str);
-      return url.protocol === 'http:' || url.protocol === 'https:';
-    } catch {
-      return false;
-    }
-  }
-  function getNowISO() {
-    return new Date().toISOString().replace('T', ' ').slice(0,19);
-  }
-
-  // Data model
-  let data = loadData();
-
-  // Elements
-  const sidebarLinks = document.querySelectorAll('.sidebar a');
-  const sections = document.querySelectorAll('.section');
-  const pageTitle = document.getElementById('pageTitle');
-  const statsDisplay = document.getElementById('statsDisplay');
-  const createBtn = document.getElementById('createBtn');
+  const overlay = document.getElementById('overlay');
+  const loginBtn = document.getElementById('loginBtn');
+  const passwordInput = document.getElementById('passwordInput');
+  const loginError = document.getElementById('loginError');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const adminNavBtn = document.getElementById('adminNavBtn');
+  const navBtns = document.querySelectorAll('.navBtn');
+  const pageHome = document.getElementById('page-home');
+  const pageAdmin = document.getElementById('page-admin');
+  const linkForm = document.getElementById('linkForm');
   const linkNameInput = document.getElementById('linkName');
   const linkUrlInput = document.getElementById('linkUrl');
-  const statusMsg = document.getElementById('statusMsg');
   const linksList = document.getElementById('linksList');
-  const redirectPage = document.getElementById('redirectPage');
-  const redirectMsg = document.getElementById('redirectMsg');
-  const progressBar = document.getElementById('progress');
-  const cancelBtn = document.getElementById('cancelBtn');
-
-  // Admin panel elements
   const totalLinksEl = document.getElementById('totalLinks');
   const totalViewsEl = document.getElementById('totalViews');
-  const suspiciousCountEl = document.getElementById('suspiciousCount');
-  const attemptsTableBody = document.querySelector('#attemptsTable tbody');
+  const totalSuspiciousEl = document.getElementById('totalSuspicious');
+  const suspiciousLog = document.getElementById('suspiciousLog');
+  const redirectOverlay = document.getElementById('redirectOverlay');
+  const redirectMsg = document.getElementById('redirectMsg');
+  const progressBar = document.getElementById('progressBar');
+  const cancelRedirectBtn = document.getElementById('cancelRedirectBtn');
 
-  // ApexCharts instances
-  let linksChart, viewsChart, suspiciousChart;
+  let data = JSON.parse(localStorage.getItem('shortifyData') || '{"links":[],"suspicious":[] }');
 
-  // Current redirect timer
-  let redirectTimer = null;
-  let redirectInterval = null;
+  const save = () => localStorage.setItem('shortifyData', JSON.stringify(data));
 
-  // Current redirect data
-  let currentRedirect = null;
-
-  // Navigation handler
-  sidebarLinks.forEach(link => {
-    link.addEventListener('click', e => {
-      e.preventDefault();
-      const target = link.getAttribute('data-target');
-      if (!target) return;
-
-      // Show/hide sections
-      sections.forEach(sec => sec.classList.remove('active'));
-      const section = document.getElementById(target);
-      if (section) section.classList.add('active');
-
-      // Sidebar active link
-      sidebarLinks.forEach(l => l.classList.remove('active'));
-      link.classList.add('active');
-
-      // Update page title
-      pageTitle.textContent = link.textContent;
-
-      // Hide redirect page and show main app
-      redirectPage.style.display = 'none';
-      document.getElementById('mainApp').style.display = 'flex';
-
-      // Refresh stats & UI
-      updateStats();
-      if(target === 'mylinks') renderLinksList();
-      if(target === 'adminPanel') refreshAdminPanel();
-      statusMsg.textContent = '';
-      linkNameInput.value = '';
-      linkUrlInput.value = '';
+  const renderLinks = () => {
+    linksList.innerHTML = '';
+    if (data.links.length === 0) {
+      linksList.innerHTML = `<p class="text-gray-500">No links created yet.</p>`;
+      return;
+    }
+    data.links.forEach(link => {
+      const div = document.createElement('div');
+      div.className = 'bg-gray-800 rounded p-4 flex justify-between items-center shadow';
+      div.innerHTML = `
+        <div>
+          <p><strong>${link.name}</strong> → 
+            <a href="#" class="text-indigo-400 underline" data-name="${link.name}">${link.url}</a>
+          </p>
+          <p class="text-gray-400 text-sm">Views: ${link.views}</p>
+        </div>
+        <button class="deleteBtn bg-red-600 hover:bg-red-700 text-white rounded px-3 py-1" data-name="${link.name}">X</button>
+      `;
+      linksList.appendChild(div);
     });
-  });
+  };
 
-  // Create link
-  createBtn.addEventListener('click', () => {
+  const updateStats = () => {
+    totalLinksEl.textContent = data.links.length;
+    totalViewsEl.textContent = data.links.reduce((a,b)=>a+b.views,0);
+    totalSuspiciousEl.textContent = data.suspicious.length;
+  };
+
+  const renderSuspiciousLog = () => {
+    suspiciousLog.innerHTML = data.suspicious.map(s =>
+      `<tr class="border-b border-gray-800"><td class="p-3">${s.time}</td><td class="p-3">${s.link}</td><td class="p-3">${s.ua}</td></tr>`
+    ).join('');
+  };
+
+  const renderCharts = () => {
+    const chart1 = new ApexCharts(document.querySelector("#chartLinks"), {
+      series: [{ name: "Links", data: data.links.map(l => 1) }],
+      chart: { type: 'bar', height: 200, foreColor: '#ccc', toolbar: { show: false }},
+      xaxis: { categories: data.links.map(l => l.name) },
+      colors: ['#6366f1']
+    });
+    const chart2 = new ApexCharts(document.querySelector("#chartViews"), {
+      series: [{ name: "Views", data: data.links.map(l => l.views) }],
+      chart: { type: 'line', height: 200, foreColor: '#ccc', toolbar: { show: false }},
+      xaxis: { categories: data.links.map(l => l.name) },
+      colors: ['#10b981']
+    });
+    const chart3 = new ApexCharts(document.querySelector("#chartSuspicious"), {
+      series: [{ name: "Suspicious", data: [data.suspicious.length] }],
+      chart: { type: 'radialBar', height: 200, foreColor: '#ccc' },
+      colors: ['#ef4444']
+    });
+    chart1.render(); chart2.render(); chart3.render();
+  };
+
+  const redirect = (link) => {
+    redirectOverlay.style.display = 'flex';
+    redirectMsg.textContent = `Redirecting to ${link.url}...`;
+    progressBar.style.width = '0%';
+    let width = 0;
+    const interval = setInterval(() => {
+      width += 100 / (REDIRECT_DELAY / 100);
+      progressBar.style.width = width + '%';
+      if (width >= 100) {
+        clearInterval(interval);
+        redirectOverlay.style.display = 'none';
+        link.views++;
+        save();
+        renderLinks();
+        window.open(link.url, '_blank');
+      }
+    }, 100);
+    cancelRedirectBtn.onclick = () => {
+      clearInterval(interval);
+      redirectOverlay.style.display = 'none';
+      data.suspicious.push({ time: new Date().toLocaleString(), link: link.name, ua: navigator.userAgent });
+      save();
+      updateStats();
+      renderSuspiciousLog();
+    };
+  };
+
+  linkForm.addEventListener('submit', e => {
+    e.preventDefault();
     const name = linkNameInput.value.trim();
     const url = linkUrlInput.value.trim();
-
-    if (!name || !url) {
-      statusMsg.style.color = 'orange';
-      statusMsg.textContent = 'Please fill both fields.';
-      return;
-    }
-    if (!isValidURL(url)) {
-      statusMsg.style.color = 'orange';
-      statusMsg.textContent = 'Invalid URL format.';
-      return;
-    }
-    if (data.links.find(l => l.name.toLowerCase() === name.toLowerCase())) {
-      statusMsg.style.color = 'orange';
-      statusMsg.textContent = 'Link name already exists.';
-      return;
-    }
-    if (data.links.length >= MAX_LINKS) {
-      statusMsg.style.color = 'orange';
-      statusMsg.textContent = `Limit reached (${MAX_LINKS} links max).`;
-      return;
-    }
-
-    // Save new link
-    data.links.push({
-      name,
-      url,
-      created: getNowISO(),
-      views: 0,
-      attempts: 0 // for suspicious attempts count per link
-    });
-    saveData(data);
-
-    statusMsg.style.color = '#7fff7f';
-    statusMsg.textContent = `Link "${sanitize(name)}" created!`;
-
-    // Reset inputs
-    linkNameInput.value = '';
-    linkUrlInput.value = '';
-
-    updateStats();
+    if (!name || !url.startsWith('http')) return alert('Invalid data');
+    if (data.links.find(l => l.name === name)) return alert('Name already used');
+    if (data.links.length >= MAX_LINKS) return alert('Limit reached');
+    data.links.push({ name, url, views: 0 });
+    save();
+    renderLinks(); updateStats();
+    linkForm.reset();
   });
 
-  // Update stats display
-  function updateStats() {
-    statsDisplay.textContent = `${data.links.length} / ${MAX_LINKS} links`;
-  }
-
-  // Render links list (My Links)
-  function renderLinksList() {
-    if (data.links.length === 0) {
-      linksList.innerHTML = '<p>No links created yet.</p>';
-      return;
+  linksList.addEventListener('click', e => {
+    if (e.target.matches('a[data-name]')) {
+      const link = data.links.find(l => l.name === e.target.dataset.name);
+      redirect(link);
     }
-    linksList.innerHTML = '';
-    data.links.forEach(link => {
-      const card = document.createElement('div');
-      card.className = 'link-card';
-
-      const info = document.createElement('div');
-      info.className = 'link-info';
-      info.innerHTML = `<a href="#" data-link="${sanitize(link.name)}">https://linkshort/#/${sanitize(link.name)}</a><br><small>${sanitize(link.url)}</small>`;
-
-      const views = document.createElement('div');
-      views.textContent = `Views: ${link.views}`;
-
-      card.appendChild(info);
-      card.appendChild(views);
-      linksList.appendChild(card);
-    });
-
-    // Add click listeners to links for redirect
-    linksList.querySelectorAll('a[data-link]').forEach(a => {
-      a.addEventListener('click', e => {
-        e.preventDefault();
-        const linkName = e.target.getAttribute('data-link');
-        startRedirect(linkName);
-      });
-    });
-  }
-
-  // Start redirect process with anti-bot and countdown
-  function startRedirect(linkName) {
-    const link = data.links.find(l => l.name === linkName);
-    if (!link) {
-      alert('Link not found.');
-      return;
+    if (e.target.matches('.deleteBtn')) {
+      data.links = data.links.filter(l => l.name !== e.target.dataset.name);
+      save(); renderLinks(); updateStats();
     }
-
-    // Anti-bot: detect multiple rapid clicks without interaction
-    const lastAttemptKey = `lastAttempt_${linkName}`;
-    const now = Date.now();
-    const lastAttempt = parseInt(localStorage.getItem(lastAttemptKey) || '0', 10);
-    if (now - lastAttempt < 4000) { // 4 seconds threshold
-      // Mark suspicious attempt
-      link.attempts = (link.attempts || 0) + 1;
-
-      // Log suspicious attempt globally with mock IP and UA
-      data.attempts = data.attempts || [];
-      data.attempts.push({
-        time: getNowISO(),
-        link: linkName,
-        ip: '192.168.0.1', // mock IP - in real server get real IP
-        userAgent: navigator.userAgent
-      });
-      saveData(data);
-      updateStats();
-      refreshAdminPanel();
-      alert('Suspicious behavior detected! Redirect canceled.');
-      return;
-    }
-    localStorage.setItem(lastAttemptKey, now.toString());
-
-    // Show redirect screen
-    redirectMsg.textContent = `Redirecting to ${link.url} in 5 seconds...`;
-    progressBar.style.width = '0%';
-    redirectPage.style.display = 'flex';
-    document.getElementById('mainApp').style.display = 'none';
-
-    currentRedirect = {
-      link,
-      startTime: now,
-      elapsed: 0
-    };
-
-    // Animate progress bar & redirect after 5 seconds
-    progressBar.style.transition = `width ${REDIRECT_TIME}ms linear`;
-    // Force reflow for transition to apply after reset:
-    void progressBar.offsetWidth;
-    progressBar.style.width = '100%';
-
-    redirectTimer = setTimeout(() => {
-      // Increment views
-      link.views++;
-      saveData(data);
-      updateStats();
-      refreshAdminPanel();
-
-      // Redirect
-      window.location.href = link.url;
-    }, REDIRECT_TIME);
-
-    // Allow cancel
-    cancelBtn.disabled = false;
-  }
-
-  // Cancel redirect
-  cancelBtn.addEventListener('click', () => {
-    if (redirectTimer) {
-      clearTimeout(redirectTimer);
-      redirectTimer = null;
-    }
-    progressBar.style.transition = '';
-    progressBar.style.width = '0%';
-
-    redirectPage.style.display = 'none';
-    document.getElementById('mainApp').style.display = 'flex';
   });
 
-  // Admin Panel refresh
-  function refreshAdminPanel() {
-    // Total links and views
-    totalLinksEl.textContent = data.links.length;
-    const totalViews = data.links.reduce((a,b) => a + (b.views||0),0);
-    totalViewsEl.textContent = totalViews;
-
-    // Suspicious attempts total
-    suspiciousCountEl.textContent = (data.attempts?.length || 0);
-
-    // Suspicious attempts log table
-    attemptsTableBody.innerHTML = '';
-    if(data.attempts && data.attempts.length > 0) {
-      data.attempts.slice(-20).reverse().forEach(attempt => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${sanitize(attempt.time)}</td><td>${sanitize(attempt.link)}</td><td>${sanitize(attempt.ip)} / ${sanitize(attempt.userAgent)}</td>`;
-        attemptsTableBody.appendChild(tr);
-      });
+  navBtns.forEach(btn => btn.onclick = () => {
+    const page = btn.dataset.page;
+    if (page === 'home') {
+      pageHome.style.display = 'block'; pageAdmin.style.display = 'none';
     } else {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="3" style="text-align:center; color:#999;">No suspicious attempts recorded</td>`;
-      attemptsTableBody.appendChild(tr);
+      pageHome.style.display = 'none'; pageAdmin.style.display = 'block';
+      updateStats(); renderSuspiciousLog(); renderCharts();
     }
+  });
 
-    // Update charts
-    updateCharts();
-  }
+  loginBtn.onclick = () => {
+    if (passwordInput.value === ADMIN_PASS) {
+      localStorage.setItem('adminLogged', 'true');
+      overlay.style.display = 'none';
+      adminNavBtn.style.display = 'inline-block';
+      logoutBtn.style.display = 'inline-block';
+    } else loginError.classList.remove('hidden');
+  };
+  logoutBtn.onclick = () => { localStorage.removeItem('adminLogged'); location.reload(); };
 
-  // Setup ApexCharts
-  function initCharts() {
-    const linksOptions = {
-      chart: {
-        type: 'bar',
-        height: 280,
-        animations: { enabled: true },
-      },
-      series: [{
-        name: 'Links',
-        data: []
-      }],
-      xaxis: { categories: [] },
-      colors: ['#5865f2'],
-      title: { text: 'Links Created' },
-      theme: { mode: 'dark' },
-    };
-    linksChart = new ApexCharts(document.querySelector("#linksChart"), linksOptions);
-    linksChart.render();
+  if (localStorage.getItem('adminLogged') === 'true') {
+    overlay.style.display = 'none';
+    adminNavBtn.style.display = 'inline-block';
+    logoutBtn.style.display = 'inline-block';
+  } else overlay.style.display = 'flex';
 
-    const viewsOptions = {
-      chart: {
-        type: 'line',
-        height: 280,
-        animations: { enabled: true },
-      },
-      series: [{
-        name: 'Views',
-        data: []
-      }],
-      xaxis: { categories: [] },
-      colors: ['#43b581'],
-      title: { text: 'Views Count' },
-      theme: { mode: 'dark' },
-    };
-    viewsChart = new ApexCharts(document.querySelector("#viewsChart"), viewsOptions);
-    viewsChart.render();
-
-    const suspiciousOptions = {
-      chart: {
-        type: 'area',
-        height: 280,
-        animations: { enabled: true },
-      },
-      series: [{
-        name: 'Suspicious Attempts',
-        data: []
-      }],
-      xaxis: { categories: [] },
-      colors: ['#f04747'],
-      title: { text: 'Suspicious Attempts Over Time' },
-      theme: { mode: 'dark' },
-    };
-    suspiciousChart = new ApexCharts(document.querySelector("#suspiciousChart"), suspiciousOptions);
-    suspiciousChart.render();
-  }
-
-  // Update ApexCharts data
-  function updateCharts() {
-    if (!linksChart || !viewsChart || !suspiciousChart) return;
-
-    // Links created by name
-    linksChart.updateOptions({
-      series: [{
-        data: data.links.map(l => 1)
-      }],
-      xaxis: {
-        categories: data.links.map(l => l.name)
-      }
-    });
-
-    // Views by link
-    viewsChart.updateOptions({
-      series: [{
-        data: data.links.map(l => l.views || 0)
-      }],
-      xaxis: {
-        categories: data.links.map(l => l.name)
-      }
-    });
-
-    // Suspicious attempts per link (sum by link name)
-    const counts = {};
-    data.attempts?.forEach(a => {
-      counts[a.link] = (counts[a.link] || 0) + 1;
-    });
-    suspiciousChart.updateOptions({
-      series: [{
-        data: data.links.map(l => counts[l.name] || 0)
-      }],
-      xaxis: {
-        categories: data.links.map(l => l.name)
-      }
-    });
-  }
-
-  // Initial
-  updateStats();
-  initCharts();
-
-  // Handle incoming redirect requests via hash URL: #/linkName
-  function checkRedirectFromHash() {
-    if(location.hash.startsWith('#/')) {
-      const linkName = decodeURIComponent(location.hash.slice(2));
-      if(linkName) {
-        startRedirect(linkName);
-        // Remove hash to avoid re-trigger
-        history.replaceState(null, '', location.pathname + location.search);
-      }
-    }
-  }
-  window.addEventListener('load', checkRedirectFromHash);
-
+  renderLinks();
 })();
 </script>
-
 </body>
 </html>
