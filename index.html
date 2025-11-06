@@ -1,84 +1,454 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LinkShort</title>
-<script src="https://cdn.jsdelivr.net/npm/tailwindcss-jit-cdn"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>LinkShort — Shortener</title>
+
+<!-- Tailwind for quick styling -->
+<script src="https://cdn.tailwindcss.com"></script>
+
 <style>
-body { background-color: #18191c; color: #fff; font-family: 'Segoe UI', sans-serif; }
-.card { background: #202225; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,.3); }
-input { background: #2f3136; border: none; border-radius: .5rem; padding: .75rem; color: #fff; width: 100%; }
-button { background: #5865f2; border: none; padding: .6rem 1.2rem; border-radius: .5rem; color: #fff; cursor: pointer; }
-button:hover { background: #4752c4; }
-.link-card { background:#2f3136; padding:.75rem 1rem; border-radius:.5rem; margin:.5rem 0; }
-.link-card small{color:#bbb;}
+  :root{
+    --bg:#0b0c10; --card:#0f1216; --muted:#9aa7c7; --accent:#6366f1; --accent-2:#7c83ff;
+  }
+  body{background:linear-gradient(180deg,var(--bg),#0a0b0f); color:#e6eef8; font-family:Inter,Segoe UI,system-ui; min-height:100vh}
+  .sidebar{width:250px;background:#0f1113;border-right:1px solid rgba(255,255,255,0.03);padding:18px;display:flex;flex-direction:column;gap:12px}
+  .logo{display:flex;gap:10px;align-items:center}
+  .logoMark{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2))}
+  .nav-btn{display:block;padding:10px 12px;border-radius:8px;color:var(--muted);font-weight:700;text-align:left}
+  .nav-btn.active,.nav-btn:hover{background:linear-gradient(90deg,rgba(99,102,241,0.12),rgba(124,131,255,0.08));color:#fff}
+  .topbar{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid rgba(255,255,255,0.03)}
+  .content{padding:22px;overflow:auto;height:calc(100vh - 64px)}
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03); padding:16px; border-radius:12px}
+  input, textarea{background:#111317;border:1px solid rgba(255,255,255,0.02);color:#e6eef8;padding:10px;border-radius:8px;outline:none}
+  button.primary{background:var(--accent);padding:10px 14px;border-radius:10px;color:white;font-weight:700}
+  button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 12px;border-radius:8px;color:var(--muted)}
+  .link-row{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent)}
+  .small{font-size:13px;color:var(--muted)}
+  .muted{color:var(--muted)}
+  .big-num{font-size:72px;font-weight:900;color:#fff;letter-spacing:-2px}
+  .progress-ring{width:140px;height:140px;display:grid;place-items:center}
+  svg circle{transition:stroke-dashoffset 0.3s linear}
+  a.discord{display:inline-flex;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;background:linear-gradient(90deg,#5865f2 0%, #7c83ff 100%);color:white;font-weight:700;text-decoration:none}
+  /* small responsive */
+  @media (max-width:950px){ .sidebar{display:none} .content{padding:14px} .topbar{padding:0 12px} }
 </style>
 </head>
-<body class="p-6">
+<body>
 
-<div class="max-w-2xl mx-auto space-y-6">
-  <div class="card space-y-3">
-    <h2 class="text-xl font-semibold">Create a new short link</h2>
-    <input type="text" id="linkName" placeholder="Link name">
-    <input type="text" id="linkUrl" placeholder="Destination URL (example.com)">
-    <button id="createBtn">Create Link</button>
-    <p id="statusMsg" class="text-sm text-gray-400"></p>
+<div style="display:flex;min-height:100vh">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logoMark"></div>
+      <div>
+        <div style="font-weight:900;color:#e6eef8">LinkShort</div>
+        <div class="small muted">fast • simple</div>
+      </div>
+    </div>
+
+    <nav style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+      <a href="#" class="nav-btn active" data-tab="home">Home</a>
+      <a href="#" class="nav-btn" data-tab="create">Create</a>
+      <a href="#" class="nav-btn" data-tab="links">My Links</a>
+      <a href="#" class="nav-btn" data-tab="about">About</a>
+    </nav>
+
+    <div style="margin-top:auto;display:flex;flex-direction:column;gap:8px">
+      <a class="discord" href="https://dsc.gg/ispasyu" target="_blank" rel="noopener noreferrer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7.5 9.5c-.833 0-1.5.667-1.5 1.5s.667 1.5 1.5 1.5S9 11.833 9 11s-.667-1.5-1.5-1.5zM16.5 9.5c-.833 0-1.5.667-1.5 1.5s.667 1.5 1.5 1.5 1.5-.667 1.5-1.5-.667-1.5-1.5-1.5z" stroke="#fff" stroke-width="0.8"/></svg>
+        Discord
+      </a>
+      <div class="small muted">v1.0</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div style="flex:1;display:flex;flex-direction:column">
+    <header class="topbar">
+      <div style="display:flex;flex-direction:column">
+        <div style="font-weight:900;font-size:18px">LinkShort</div>
+        <div class="small muted" id="top-sub">Create and share short links</div>
+      </div>
+      <div class="small muted" id="top-stats">0 links • 0 views • 0 suspicious</div>
+    </header>
+
+    <main class="content">
+      <!-- Home tab -->
+      <section id="home" class="card" style="display:block">
+        <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div style="flex:1;min-width:260px">
+            <h2 style="font-weight:800;color:#cfe0ff">Welcome</h2>
+            <p class="small muted" style="margin-top:8px">Create a short link or click an existing one. When a short link is opened, a 5s wait screen appears before navigating to the destination.</p>
+
+            <div style="margin-top:16px;display:flex;gap:10px;align-items:center">
+              <a class="discord" href="https://dsc.gg/ispasyu" target="_blank" rel="noopener noreferrer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7.5 9.5c-.833 0-1.5.667-1.5 1.5s.667 1.5 1.5 1.5S9 11.833 9 11s-.667-1.5-1.5-1.5zM16.5 9.5c-.833 0-1.5.667-1.5 1.5s.667 1.5 1.5 1.5 1.5-.667 1.5-1.5-.667-1.5-1.5-1.5z" stroke="#fff" stroke-width="0.8"/></svg>
+                Join Discord
+              </a>
+            </div>
+          </div>
+
+          <div style="width:420px;min-width:260px;">
+            <div class="card" style="padding:14px">
+              <div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+                <div>
+                  <div class="small muted">Quick create</div>
+                  <div style="font-weight:800;color:#cfe0ff">Create a short link</div>
+                </div>
+              </div>
+
+              <form id="quickCreateForm" class="mt-4" onsubmit="return false;">
+                <label class="small muted">Short name (unique)</label>
+                <input id="qc_name" placeholder="example" class="mt-2 w-full"/>
+
+                <label class="small muted mt-3">Destination URL</label>
+                <input id="qc_url" placeholder="https://example.com or example.com" class="mt-2 w-full"/>
+
+                <div style="margin-top:12px;display:flex;gap:8px">
+                  <button id="qc_create" class="primary">Create</button>
+                  <button id="qc_preview" class="ghost" type="button">Preview corrected URL</button>
+                </div>
+
+                <div id="qc_feedback" class="small muted mt-3"></div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Create tab -->
+      <section id="create" class="card" style="margin-top:16px;display:none">
+        <h3 style="font-weight:800;color:#cfe0ff">Create Link</h3>
+        <form id="createForm" class="mt-4" onsubmit="return false;">
+          <label class="small muted">Short name (unique)</label>
+          <input id="name" placeholder="my-link" class="mt-2 w-1/2"/>
+
+          <label class="small muted mt-3">Destination URL</label>
+          <input id="url" placeholder="https://example.com or example.com" class="mt-2 w-full"/>
+
+          <div style="margin-top:12px;display:flex;gap:8px">
+            <button id="createBtn" class="primary">Create</button>
+            <button id="previewBtn" class="ghost" type="button">Preview corrected URL</button>
+          </div>
+          <div id="createFeedback" class="small muted mt-3"></div>
+        </form>
+      </section>
+
+      <!-- Links tab -->
+      <section id="links" class="card mt-6" style="display:none">
+        <h3 style="font-weight:800;color:#cfe0ff">My Links</h3>
+        <div id="linksList" class="mt-4" style="display:flex;flex-direction:column;gap:10px"></div>
+      </section>
+
+      <!-- About tab -->
+      <section id="about" class="card mt-6" style="display:none">
+        <h3 style="font-weight:800;color:#cfe0ff">About</h3>
+        <p class="small muted" style="margin-top:8px">Simple shortener with a decorative wait screen. Use the share link `?c=CODE` to open the wait screen for a given link.</p>
+      </section>
+    </main>
   </div>
+</div>
 
-  <div class="card">
-    <h2 class="text-xl font-semibold mb-2">My Links</h2>
-    <div id="linksList"></div>
+<!-- Redirect / Wait screen (full-screen overlay) -->
+<div id="waitOverlay" style="display:none;position:fixed;inset:0;z-index:60;align-items:center;justify-content:center;background:radial-gradient(ellipse at center, rgba(10,12,16,0.9), rgba(4,6,10,0.98));">
+  <div style="width:740px;max-width:94%;display:flex;gap:24px;align-items:center;justify-content:center;padding:28px;border-radius:14px;">
+    <div class="progress-ring">
+      <!-- Circular progress SVG -->
+      <svg width="140" height="140" viewBox="0 0 120 120">
+        <defs>
+          <linearGradient id="g1" x1="0" x2="1"><stop offset="0" stop-color="#6366f1"/><stop offset="1" stop-color="#7c83ff"/></linearGradient>
+        </defs>
+        <circle cx="60" cy="60" r="50" stroke="#111317" stroke-width="12" fill="none"></circle>
+        <circle id="progressCircle" cx="60" cy="60" r="50" stroke="url(#g1)" stroke-width="12" fill="none" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314" transform="rotate(-90 60 60)"></circle>
+      </svg>
+      <div style="position:relative;margin-top:-110px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+        <div id="countNumber" class="big-num">5</div>
+        <div class="small muted" style="text-align:center;margin-top:6px">seconds</div>
+      </div>
+    </div>
+
+    <div style="flex:1;min-width:200px">
+      <div style="font-weight:900;font-size:20px;color:#cfe0ff" id="waitTitle">Redirecting...</div>
+      <div class="small muted" id="waitUrl" style="margin-top:8px">destination</div>
+
+      <div style="margin-top:14px" class="small muted">Move your mouse, touch the screen, or press a key to confirm you are human.</div>
+
+      <div style="margin-top:18px;display:flex;gap:8px;">
+        <button id="cancelWait" class="ghost">Cancel</button>
+        <button id="forceStart" class="ghost">Start anyway</button>
+        <a id="continueBtn" class="primary" style="display:none">Continue</a>
+      </div>
+
+      <div id="waitMsg" class="small muted" style="margin-top:10px"></div>
+    </div>
   </div>
 </div>
 
 <script>
-let links = JSON.parse(localStorage.getItem('links')||'[]');
-const maxLinks = 10;
-const list = document.getElementById('linksList');
-const msg = document.getElementById('statusMsg');
+/* ===================== STORAGE & DATA ===================== */
+const STORAGE_KEY = 'linkshort_v2';
+function load(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"links":[],"attempts":[]}'); }catch(e){ return {links:[],attempts:[]}; } }
+function save(d){ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+let data = load();
 
-function updateList(){
-  list.innerHTML='';
-  if(links.length===0){list.innerHTML='<p class="text-gray-400">No links yet.</p>';return;}
-  links.forEach(l=>{
-    const div=document.createElement('div');
-    div.className='link-card';
-    div.innerHTML=`
-      <strong>${l.name}</strong><br>
-      <small>Short: <a href="?c=${l.code}" class="text-indigo-400">${location.origin}?c=${l.code}</a></small><br>
-      <small>Destination: ${l.url}</small><br>
-      <small>Views: ${l.views||0}</small><br>
-      <button onclick="deleteLink('${l.code}')">Delete</button>
+/* ===================== UTILITIES ===================== */
+function now(){ return new Date().toLocaleString(); }
+function uid(len=6){ return Math.random().toString(36).slice(2,2+len); }
+function normalizeUrl(raw){
+  let s = String(raw || '').trim();
+  if(!s) return '';
+  // add https if missing
+  if(!s.match(/^https?:\/\//i)) s = 'https://' + s;
+  try{
+    const u = new URL(s);
+    if(!['http:','https:'].includes(u.protocol)) return '';
+    return u.href;
+  }catch(e){ return ''; }
+}
+function sanitize(s){ return String(s).replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ===================== UI: Tabs ===================== */
+document.querySelectorAll('.nav-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const tab = btn.dataset.tab;
+    if(!tab) return;
+    document.querySelectorAll('section[id]').forEach(s=>s.style.display='none');
+    document.getElementById(tab).style.display = 'block';
+    document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('top-sub').textContent = tab === 'home' ? 'Create and share short links' : (tab === 'create' ? 'Create a short link' : (tab === 'links' ? 'Your created links' : 'About'));
+    if(tab === 'links') renderLinks();
+  });
+});
+
+/* ===================== Create quick form handlers ===================== */
+const qc_name = document.getElementById('qc_name');
+const qc_url = document.getElementById('qc_url');
+const qc_create = document.getElementById('qc_create');
+const qc_preview = document.getElementById('qc_preview');
+const qc_feedback = document.getElementById('qc_feedback');
+
+qc_preview.addEventListener('click', (e)=>{
+  const corrected = normalizeUrl(qc_url.value);
+  qc_feedback.innerHTML = corrected ? `<span style="color:#9fb2ff">Corrected URL: </span><span class="small muted">${sanitize(corrected)}</span>` : `<span style="color:#ff9b9b">Invalid URL after correction.</span>`;
+});
+
+qc_create.addEventListener('click', (e)=>{
+  e.preventDefault();
+  const name = String(qc_name.value || '').trim();
+  const raw = String(qc_url.value || '').trim();
+  if(!name || !raw){ qc_feedback.innerHTML = `<span style="color:#ff9b9b">Name and URL required.</span>`; return; }
+  if(data.links.some(l=>l.name.toLowerCase() === name.toLowerCase())){ qc_feedback.innerHTML = `<span style="color:#ff9b9b">Name already taken.</span>`; return; }
+  const url = normalizeUrl(raw);
+  if(!url){ qc_feedback.innerHTML = `<span style="color:#ff9b9b">Invalid URL.</span>`; return; }
+  const code = uid(6);
+  data.links.push({ name, url, code, views:0, created: now() });
+  save(data);
+  qc_feedback.innerHTML = `<span style="color:#9fb2ff">Created — short code: ${code}</span>`;
+  qc_name.value=''; qc_url.value='';
+  updateTopStats();
+});
+
+/* ===================== Create tab handlers ===================== */
+document.getElementById('createBtn').addEventListener('click', ()=>{
+  const name = String(document.getElementById('name').value || '').trim();
+  const raw = String(document.getElementById('url').value || '').trim();
+  const fb = document.getElementById('createFeedback');
+  fb.textContent = '';
+  if(!name || !raw){ fb.innerHTML = `<span style="color:#ff9b9b">Both fields required.</span>`; return; }
+  if(data.links.some(l=>l.name.toLowerCase() === name.toLowerCase())){ fb.innerHTML = `<span style="color:#ff9b9b">Name taken.</span>`; return; }
+  const url = normalizeUrl(raw);
+  if(!url){ fb.innerHTML = `<span style="color:#ff9b9b">Invalid URL.</span>`; return; }
+  const code = uid(6);
+  data.links.push({ name, url, code, views:0, created: now() });
+  save(data);
+  fb.innerHTML = `<span style="color:#9fb2ff">Link created — code: ${code}</span>`;
+  document.getElementById('name').value=''; document.getElementById('url').value='';
+  updateTopStats();
+});
+
+/* ===================== Render links list ===================== */
+function renderLinks(){
+  const list = document.getElementById('linksList');
+  list.innerHTML = '';
+  if(!data.links.length){ list.innerHTML = `<div class="small muted">No links yet.</div>`; return; }
+  data.links.forEach(l=>{
+    const row = document.createElement('div');
+    row.className = 'link-row';
+    row.innerHTML = `
+      <div style="min-width:0">
+        <div style="font-weight:800;color:#cfe0ff">${sanitize(l.name)}</div>
+        <div class="small muted">${sanitize(l.url)}</div>
+        <div class="small muted" style="margin-top:6px">Views: <strong style="color:#9fb2ff">${l.views||0}</strong> • Code: <code>${l.code}</code></div>
+        <div class="small muted" style="margin-top:6px">Share: <a style="color:#9fb2ff" href="?c=${l.code}">${location.origin + location.pathname}?c=${l.code}</a></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        <button class="ghost copyBtn" data-code="${l.code}">Copy</button>
+        <button class="ghost delBtn" data-code="${l.code}" style="background:#2d1111;color:#ff9b9b">Delete</button>
+      </div>
     `;
-    list.appendChild(div);
+    list.appendChild(row);
+  });
+
+  // bind events
+  document.querySelectorAll('.copyBtn').forEach(b=>{
+    b.onclick = ()=> {
+      const code = b.dataset.code;
+      const u = `${location.origin + location.pathname}?c=${code}`;
+      navigator.clipboard?.writeText(u).then(()=> alert('Short URL copied.'));
+    };
+  });
+  document.querySelectorAll('.delBtn').forEach(b=>{
+    b.onclick = ()=> {
+      if(!confirm('Delete this link?')) return;
+      data.links = data.links.filter(x=>x.code !== b.dataset.code);
+      save(data);
+      renderLinks();
+      updateTopStats();
+    };
   });
 }
 
-document.getElementById('createBtn').onclick = ()=>{
-  const name=document.getElementById('linkName').value.trim();
-  let url=document.getElementById('linkUrl').value.trim();
-  if(!name||!url){msg.textContent='Please fill all fields.';return;}
-  if(!url.startsWith('http://')&&!url.startsWith('https://')){
-    url='https://'+url;
-  }
-  if(links.length>=maxLinks){msg.textContent='Max 10 links reached.';return;}
-  const code=Math.random().toString(36).substring(2,8);
-  links.push({name,url,code,views:0});
-  localStorage.setItem('links',JSON.stringify(links));
-  msg.textContent='Link created!';
-  document.getElementById('linkName').value='';
-  document.getElementById('linkUrl').value='';
-  updateList();
-};
-
-function deleteLink(code){
-  links=links.filter(l=>l.code!==code);
-  localStorage.setItem('links',JSON.stringify(links));
-  updateList();
+/* ===================== Top stats ===================== */
+function updateTopStats(){
+  const totalLinks = data.links.length;
+  const totalViews = data.links.reduce((s,l)=>s+(l.views||0), 0);
+  const suspicious = data.attempts.length || 0;
+  document.getElementById('top-stats').textContent = `${totalLinks} links • ${totalViews} views • ${suspicious} suspicious`;
 }
 
-updateList();
+/* ===================== Redirect / Wait screen logic ===================== */
+const urlParams = new URLSearchParams(location.search);
+if(urlParams.has('c')){
+  // show wait overlay and run countdown for that code
+  const code = urlParams.get('c');
+  const link = data.links.find(x=>x.code === code);
+  // If none, show a simple message and stop
+  if(!link){
+    document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#07080a;color:#e6eef8;"><div class="card">Invalid or expired link.</div></div>`;
+  } else {
+    // Prepare wait UI
+    document.getElementById('waitOverlay').style.display = 'flex';
+    document.getElementById('waitTitle').textContent = `Redirecting to ${link.name}`;
+    document.getElementById('waitUrl').textContent = link.url;
+    // countdown vars
+    const TOTAL = 5; // seconds
+    let left = TOTAL;
+    const numberEl = document.getElementById('countNumber');
+    const circle = document.getElementById('progressCircle');
+    const cancelBtn = document.getElementById('cancelWait');
+    const forceBtn = document.getElementById('forceStart');
+    const continueBtn = document.getElementById('continueBtn');
+    const waitMsg = document.getElementById('waitMsg');
+
+    // circle stroke-dashoffset calculation
+    const CIRC = 314; // approx circumference for r=50 (2πr)
+    circle.style.strokeDasharray = CIRC;
+    circle.style.strokeDashoffset = CIRC;
+
+    let interacted = false;
+    let countdownActive = false;
+    let interval = null;
+
+    function startCountdown(forced = false){
+      if(countdownActive) return;
+      countdownActive = true;
+      waitMsg.textContent = '';
+      // If not interacted and not forced, show warning text but still start countdown
+      if(!interacted && !forced){
+        waitMsg.innerHTML = `<span style="color:#f59e0b">No interaction detected. This attempt will be recorded as suspicious.</span>`;
+      }
+      // animate circle: set dashoffset to 0 over TOTAL seconds
+      circle.style.transition = `stroke-dashoffset ${TOTAL}s linear`;
+      circle.style.strokeDashoffset = 0;
+      numberEl.textContent = left;
+      interval = setInterval(()=>{
+        left--;
+        if(left <= 0){
+          clearInterval(interval);
+          numberEl.textContent = 0;
+          // finalize: if interacted OR forced -> count view, else -> record suspicious attempt
+          if(interacted || forced){
+            // increment view
+            link.views = (link.views || 0) + 1;
+            save(data);
+            // Redirect after tiny delay to allow UI update (and to avoid immediate location replace)
+            setTimeout(()=> {
+              // actual navigation
+              window.location.href = link.url;
+            }, 200);
+          } else {
+            // log suspicious attempt
+            data.attempts.push({ time: now(), link: link.name, ua: navigator.userAgent });
+            save(data);
+            // still redirect after a short message
+            waitMsg.innerHTML = `<span style="color:#ff9b9b">No interaction detected — suspicious attempt logged.</span>`;
+            setTimeout(()=> window.location.href = link.url, 900);
+          }
+        } else {
+          numberEl.textContent = left;
+        }
+      }, 1000);
+    }
+
+    // mark interaction
+    function markInteracted(){
+      interacted = true;
+      document.removeEventListener('mousemove', markInteracted);
+      document.removeEventListener('keydown', markInteracted);
+      document.removeEventListener('touchstart', markInteracted);
+      // If countdown hasn't started, start it now
+      if(!countdownActive) startCountdown(false);
+    }
+
+    document.addEventListener('mousemove', markInteracted);
+    document.addEventListener('keydown', markInteracted);
+    document.addEventListener('touchstart', markInteracted);
+
+    // If the user presses "Start anyway" force start and count as interaction
+    forceBtn.onclick = ()=> {
+      startCountdown(true);
+    };
+
+    // Cancel -> log suspicious and show message but remain on page (no redirect)
+    cancelBtn.onclick = ()=>{
+      if(interval) clearInterval(interval);
+      // log attempt
+      data.attempts.push({ time: now(), link: link.name, ua: navigator.userAgent, cancelled:true });
+      save(data);
+      document.getElementById('waitOverlay').style.display = 'none';
+      // update top stats
+      updateTopStats();
+      alert('Redirect cancelled — suspicious attempt logged.');
+    };
+
+    // Auto-start behavior: if user already interacted, start immediately; otherwise start countdown after small grace
+    setTimeout(()=>{
+      if(interacted) startCountdown(false);
+      else setTimeout(()=>{ if(!countdownActive) startCountdown(false); }, 1200); // small grace then start countdown anyway
+    }, 200);
+
+  }
+} else {
+  // not in redirect mode — initialize UI and events
+  updateTopStats();
+  renderLinks();
+}
+
+/* ================ init ================ */
+updateTopStats();
+renderLinks();
+
+/* ================ listen storage (if multiple tabs) ================ */
+window.addEventListener('storage', (e)=>{
+  if(e.key === STORAGE_KEY){
+    data = load();
+    updateTopStats();
+    renderLinks();
+  }
+});
 </script>
 </body>
 </html>
