@@ -1,332 +1,431 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LinkShort Dashboard</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<style>
-body {
-  background-color: #0e0f12;
-  color: #e0e0e0;
-  font-family: 'Inter', sans-serif;
-  height: 100vh;
-  overflow: hidden;
-}
-.sidebar {
-  width: 230px;
-  background-color: #1a1b1f;
-  padding: 20px 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  border-right: 1px solid #2d2f36;
-}
-.sidebar h2 {
-  color: #6366f1;
-  font-size: 22px;
-  margin: 0 0 20px 20px;
-  font-weight: 700;
-}
-.sidebar a {
-  color: #ccc;
-  text-decoration: none;
-  padding: 12px 20px;
-  width: 100%;
-  transition: 0.2s;
-}
-.sidebar a:hover, .sidebar a.active {
-  background-color: #3f3fff;
-  color: #fff;
-}
-.main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background-color: #202225;
-}
-.topbar {
-  height: 60px;
-  background: #18191c;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
-  border-bottom: 1px solid #2f3136;
-}
-.topbar h1 {
-  font-size: 20px;
-  font-weight: 600;
-}
-.content {
-  padding: 20px;
-  overflow-y: auto;
-  flex: 1;
-}
-button {
-  background-color: #6366f1;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  color: white;
-  cursor: pointer;
-  transition: 0.2s;
-}
-button:hover {
-  background-color: #4f46e5;
-}
-input {
-  background-color: #2f3136;
-  border: none;
-  border-radius: 6px;
-  color: #fff;
-  padding: 10px;
-  width: 100%;
-  margin-bottom: 10px;
-}
-.link-card {
-  background: #18191c;
-  border-radius: 8px;
-  padding: 12px;
-  margin: 10px 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.link-card a {
-  color: #6366f1;
-  text-decoration: none;
-}
-.link-card small {
-  color: #aaa;
-}
-.redirect {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  width: 100vw;
-  background: #0e0f12;
-  color: #fff;
-  text-align: center;
-}
-.progress-bar {
-  width: 240px;
-  height: 6px;
-  background: #2f3136;
-  border-radius: 3px;
-  overflow: hidden;
-  margin-top: 15px;
-}
-.progress {
-  width: 0%;
-  height: 100%;
-  background: #6366f1;
-  transition: width 5s linear;
-}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>LinkShort — URL Shortener</title>
+
+  <!-- Tailwind CSS (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- ApexCharts -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+  <style>
+    body { background:#0b0c0f; color:#e6eef8; font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto; height:100vh; overflow:hidden; }
+    .sidebar { width:240px; background:#111214; border-right:1px solid #1f2430; display:flex; flex-direction:column; padding:18px; gap:8px; }
+    .main { flex:1; display:flex; flex-direction:column; }
+    .topbar { height:64px; background:#0f1113; border-bottom:1px solid #1f2430; display:flex; align-items:center; justify-content:space-between; padding:0 20px; }
+    .content { padding:20px; overflow:auto; height:calc(100vh - 64px); }
+    .nav-btn { display:block; padding:12px 14px; color:#bfc9d9; border-radius:8px; text-align:left; font-weight:600; }
+    .nav-btn.active, .nav-btn:hover { background:#3b41f2; color:white; }
+    .card { background:#0f1216; border:1px solid #1f2430; border-radius:10px; padding:16px; }
+    .muted { color:#9aa7c7; }
+    .small { font-size:13px; color:#9aa7c7; }
+    .link-card { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:12px; background:#0d0f12; border-radius:8px; border:1px solid #1a1d23; }
+    /* redirect page override */
+    .redirect-full { position:fixed; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; z-index:60; background:linear-gradient(180deg, rgba(2,6,23,0.95), rgba(6,10,20,0.98)); color:#e6eef8; }
+    .progress { height:8px; background:#3b41f2; width:0%; transition: width 5s linear; border-radius:6px; }
+    @media (max-width:900px){ .sidebar{display:none} }
+  </style>
 </head>
 <body>
+  <!-- Redirect screen (used when ?c=code) -->
+  <div id="redirectScreen" class="redirect-full" style="display:none;">
+    <h2 id="rs_title" style="font-size:22px; color:#9fb2ff; margin-bottom:8px;">Preparing to redirect…</h2>
+    <p id="rs_text" class="muted small" style="text-align:center; max-width:720px; margin-bottom:18px;">Please interact (move mouse / touch / press any key) to confirm you are human. Countdown will begin after interaction.</p>
 
-<!-- Redirect Page -->
-<div id="redirectPage" class="redirect" style="display:none">
-  <h2 class="text-2xl mb-2 text-indigo-400 font-semibold">Redirecting...</h2>
-  <p id="redirectMsg" class="text-gray-400 mb-4">Please wait, you will be redirected shortly.</p>
-  <div class="progress-bar"><div class="progress" id="progress"></div></div>
-  <button id="cancelBtn" class="mt-4 px-4 py-2 bg-gray-700 hover:bg-red-600 rounded">Cancel</button>
-</div>
+    <div id="rs_box" class="card" style="width:480px; max-width:92%; text-align:center;">
+      <div id="rs_info" style="margin-bottom:10px;">
+        <div id="rs_name" style="font-weight:700; color:#cfe0ff;"></div>
+        <div id="rs_url" class="small muted" style="margin-top:6px;"></div>
+      </div>
 
-<!-- Sidebar -->
-<div class="flex h-full">
-  <div class="sidebar">
-    <h2>LinkShort</h2>
-    <a href="#" class="active" data-target="dashboard">Dashboard</a>
-    <a href="#" data-target="mylinks">My Links</a>
-    <a href="#" data-target="about">About</a>
-  </div>
-
-  <!-- Main -->
-  <div class="main">
-    <div class="topbar">
-      <h1 id="pageTitle">Dashboard</h1>
-      <div id="statsDisplay" class="text-gray-400"></div>
-    </div>
-
-    <div class="content">
-
-      <!-- Dashboard -->
-      <div id="dashboard" class="section">
-        <h2 class="text-2xl font-semibold text-indigo-400 mb-4">Create a new short link</h2>
-        <input type="text" id="linkName" placeholder="Enter link name">
-        <input type="text" id="linkUrl" placeholder="Enter destination URL (https://example.com)">
-        <button id="createBtn">Create Link</button>
-        <p id="statusMsg" class="mt-2 text-gray-400"></p>
-
-        <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="bg-[#18191c] rounded-xl p-4">
-            <h3 class="text-lg font-semibold mb-2 text-indigo-400">Views per Link</h3>
-            <div id="viewsChart"></div>
+      <div style="margin-top:8px;">
+        <div style="background:#0b0d11; padding:12px; border-radius:8px;">
+          <div class="small muted" style="margin-bottom:8px;">Countdown</div>
+          <div style="background:#0b0d11; border-radius:8px; padding:6px;">
+            <div id="rs_progress" style="background:#111318; height:14px; border-radius:8px; overflow:hidden;">
+              <div id="rs_progress_bar" class="progress"></div>
+            </div>
           </div>
-          <div class="bg-[#18191c] rounded-xl p-4">
-            <h3 class="text-lg font-semibold mb-2 text-indigo-400">Total Stats</h3>
-            <div id="statsChart"></div>
+          <div id="rs_seconds" class="muted small" style="margin-top:8px;">5 seconds remaining</div>
+          <div style="margin-top:12px; display:flex; gap:8px; justify-content:center;">
+            <button id="rs_cancel" class="nav-btn" style="background:#2a2e39; color:white; padding:8px 14px; border-radius:8px;">Cancel</button>
+            <button id="rs_force" class="nav-btn" style="background:#293241; color:#9fb2ff; padding:8px 14px; border-radius:8px;">Start anyway</button>
           </div>
         </div>
       </div>
 
-      <!-- My Links -->
-      <div id="mylinks" class="section hidden">
-        <h2 class="text-2xl font-semibold text-indigo-400 mb-4">Your Links</h2>
-        <div id="linksList"></div>
-      </div>
-
-      <!-- About -->
-      <div id="about" class="section hidden">
-        <h2 class="text-2xl font-semibold text-indigo-400 mb-4">About LinkShort</h2>
-        <p class="text-gray-300 mb-2">LinkShort is a privacy-first, ad-free link shortener that works entirely in your browser using LocalStorage.</p>
-        <p class="text-gray-300 mb-2">No servers, no tracking — everything is stored locally on your device.</p>
-        <p class="text-gray-300 mb-2">You can create up to <strong>10 links</strong> per browser account.</p>
-        <p class="text-gray-300">All your links and view counts are stored privately and securely inside your browser’s storage.</p>
-      </div>
+      <div id="rs_bot_warn" class="small muted" style="margin-top:10px; display:none;">No human interaction detected — suspicious attempt logged.</div>
     </div>
   </div>
-</div>
+
+  <div style="display:flex; height:100vh;">
+    <aside class="sidebar">
+      <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#3b41f2,#7c83ff)"></div>
+        <div>
+          <div style="font-weight:800; color:#cfe0ff;">LinkShort</div>
+          <div class="muted small">URL shortener</div>
+        </div>
+      </div>
+
+      <nav style="margin-top:6px; display:flex; flex-direction:column; gap:6px;">
+        <a href="#" class="nav-btn active" data-tab="dashboard">Dashboard</a>
+        <a href="#" class="nav-btn" data-tab="mylinks">My Links</a>
+        <a href="#" class="nav-btn" data-tab="create">Create Link</a>
+        <a href="#" class="nav-btn" data-tab="about">About</a>
+      </nav>
+
+      <div style="margin-top:auto; font-size:13px; color:#8ea0d9;">v1.0</div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div style="display:flex; gap:12px; align-items:center;">
+          <div style="font-size:18px; font-weight:700;" id="pageTitle">Dashboard</div>
+          <div id="pageSub" class="small muted">Overview & metrics</div>
+        </div>
+        <div class="muted small" id="topStats">0 links • 0 views • 0 suspicious</div>
+      </div>
+
+      <div class="content">
+        <!-- Dashboard -->
+        <section id="dashboard" class="card" style="display:block; gap:12px;">
+          <div style="display:flex; justify-content:space-between; gap:14px; align-items:flex-start; flex-wrap:wrap;">
+            <div style="flex:1; min-width:260px;">
+              <h3 style="font-size:18px; color:#9fb2ff; font-weight:700;">Quick Stats</h3>
+              <div style="display:flex; gap:12px; margin-top:12px; flex-wrap:wrap;">
+                <div class="card" style="min-width:160px; padding:12px;">
+                  <div class="small muted">Links Created</div>
+                  <div id="stat_links" style="font-size:20px; font-weight:800; margin-top:6px;">0</div>
+                </div>
+                <div class="card" style="min-width:160px; padding:12px;">
+                  <div class="small muted">Total Views</div>
+                  <div id="stat_views" style="font-size:20px; font-weight:800; margin-top:6px;">0</div>
+                </div>
+                <div class="card" style="min-width:160px; padding:12px;">
+                  <div class="small muted">Suspicious Attempts</div>
+                  <div id="stat_susp" style="font-size:20px; font-weight:800; margin-top:6px;">0</div>
+                </div>
+              </div>
+            </div>
+
+            <div style="flex:1; min-width:300px;">
+              <h3 style="font-size:18px; color:#9fb2ff; font-weight:700;">Usage Charts</h3>
+              <div style="margin-top:12px;" class="card">
+                <div id="chart_views" style="height:240px;"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- My Links -->
+        <section id="mylinks" class="card" style="margin-top:16px; display:none;">
+          <h3 style="font-size:18px; color:#9fb2ff; font-weight:700; margin-bottom:12px;">My Links</h3>
+          <div id="linksContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
+        </section>
+
+        <!-- Create -->
+        <section id="create" class="card" style="margin-top:16px; display:none;">
+          <h3 style="font-size:18px; color:#9fb2ff; font-weight:700; margin-bottom:12px;">Create Link</h3>
+
+          <form id="createForm" style="display:flex; flex-direction:column; gap:10px; max-width:640px;">
+            <label class="small muted">Short name (unique)</label>
+            <input id="inputName" placeholder="example-name" class="card" style="padding:10px; border-radius:8px; border:1px solid #1b1e24;" />
+
+            <label class="small muted">Destination URL</label>
+            <input id="inputUrl" placeholder="https://example.com or example.com" class="card" style="padding:10px; border-radius:8px; border:1px solid #1b1e24;" />
+            <div class="small muted">If you type <code>example.com</code> it will be automatically corrected to <code>https://example.com</code>.</div>
+
+            <div style="display:flex; gap:8px; margin-top:6px;">
+              <button type="submit" class="nav-btn" style="background:#3b41f2; color:white; padding:10px 14px; border-radius:8px;">Create</button>
+              <button type="button" id="previewBtn" class="nav-btn" style="background:#1f2330; color:#9fb2ff; padding:10px 14px; border-radius:8px;">Preview corrected URL</button>
+            </div>
+
+            <div id="createFeedback" class="small muted"></div>
+          </form>
+        </section>
+
+        <!-- About -->
+        <section id="about" class="card" style="margin-top:16px; display:none;">
+          <h3 style="font-size:18px; color:#9fb2ff; font-weight:700; margin-bottom:10px;">About LinkShort</h3>
+          <p class="small muted">This is a simple, privacy-minded URL shortener. Links are accessible using a code parameter: <code>?c=CODE</code>. Each redirect shows a 5s countdown; views are counted only after the countdown completes and after human interaction is detected.</p>
+        </section>
+
+      </div>
+    </main>
+  </div>
 
 <script>
-const params = new URLSearchParams(window.location.search);
-if (params.has('c')) {
-  document.body.innerHTML = document.getElementById('redirectPage').outerHTML;
-  document.getElementById('redirectPage').style.display = 'flex';
+/* ========= Data model (internal persistence) ========= */
+const STORAGE_KEY = 'linkshort_data_v1';
+function loadData(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return { links: [], attempts: [] };
+    return JSON.parse(raw);
+  } catch { return { links: [], attempts: [] }; }
+}
+function saveData(d){ localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
 
-  const code = params.get('c');
-  const data = JSON.parse(localStorage.getItem('links') || '[]');
-  const link = data.find(l => l.code === code);
-  const msg = document.getElementById('redirectMsg');
-  const progress = document.getElementById('progress');
-  const cancel = document.getElementById('cancelBtn');
+let data = loadData();
 
-  if (link) {
-    let canceled = false;
-    msg.innerHTML = `Redirecting to <strong>${link.name}</strong><br><small>${link.url}</small>`;
-    setTimeout(() => { progress.style.width = '100%'; }, 50);
+/* ========= Utilities ========= */
+function sanitize(s){ return String(s).replace(/[<>"]/g, c=>({'<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function nowISO(){ return new Date().toLocaleString(); }
 
-    const timer = setTimeout(() => {
-      if (!canceled) {
-        link.views = (link.views || 0) + 1;
-        localStorage.setItem('links', JSON.stringify(data));
-        window.location.href = link.url;
-      }
-    }, 5000);
-
-    cancel.onclick = () => {
-      canceled = true;
-      clearTimeout(timer);
-      msg.textContent = 'Redirection canceled. Possible bot activity logged.';
-    };
-  } else {
-    msg.textContent = 'Invalid or expired link.';
-    document.getElementById('progress').style.display = 'none';
-    document.getElementById('cancelBtn').style.display = 'none';
-  }
-} else {
-  const sidebarLinks = document.querySelectorAll('.sidebar a');
-  const sections = document.querySelectorAll('.section');
-  const pageTitle = document.getElementById('pageTitle');
-  const statsDisplay = document.getElementById('statsDisplay');
-  const createBtn = document.getElementById('createBtn');
-  const linkName = document.getElementById('linkName');
-  const linkUrl = document.getElementById('linkUrl');
-  const msg = document.getElementById('statusMsg');
-  let links = JSON.parse(localStorage.getItem('links') || '[]');
-  const maxLinks = 10;
-
-  function updateStats() {
-    statsDisplay.textContent = `${links.length} / ${maxLinks} links`;
-  }
-
-  sidebarLinks.forEach(a => {
-    a.addEventListener('click', e => {
-      e.preventDefault();
-      sidebarLinks.forEach(x => x.classList.remove('active'));
-      a.classList.add('active');
-      const target = a.dataset.target;
-      sections.forEach(s => s.classList.add('hidden'));
-      document.getElementById(target).classList.remove('hidden');
-      pageTitle.textContent = a.textContent;
-      if (target === 'mylinks') renderLinks();
-      if (target === 'dashboard') drawCharts();
-    });
+/* ========= Tabs ========= */
+document.querySelectorAll('.nav-btn[data-tab]').forEach(btn=>{
+  btn.addEventListener('click', (e)=>{
+    const tab = btn.getAttribute('data-tab');
+    document.querySelectorAll('main .content section').forEach(s=>s.style.display='none');
+    document.getElementById(tab).style.display = 'block';
+    document.querySelectorAll('.nav-btn').forEach(n=>n.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('pageTitle').textContent = btn.textContent;
+    if(tab === 'dashboard') updateDashboard();
+    if(tab === 'mylinks') renderLinks();
   });
+});
 
-  createBtn.addEventListener('click', () => {
-    const name = linkName.value.trim();
-    let url = linkUrl.value.trim();
-    if (!name || !url) { msg.textContent = 'Please fill in both fields.'; return; }
-    if (!url.startsWith('http')) url = 'https://' + url;
-    if (links.length >= maxLinks) { msg.textContent = 'Link limit reached (10).'; return; }
+/* ========= Charts (ApexCharts) ========= */
+let chartViews = null;
+function renderCharts(){
+  const names = data.links.map(l=>l.name);
+  const views = data.links.map(l=>l.views||0);
 
-    const code = Math.random().toString(36).substring(2, 8);
-    links.push({ name, url, code, views: 0 });
-    localStorage.setItem('links', JSON.stringify(links));
-    msg.textContent = 'Link created successfully!';
-    linkName.value = linkUrl.value = '';
-    updateStats();
-    drawCharts();
-  });
-
-  function renderLinks() {
-    const list = document.getElementById('linksList');
-    list.innerHTML = '';
-    if (links.length === 0) { list.innerHTML = '<p>No links yet.</p>'; return; }
-    links.forEach(l => {
-      const div = document.createElement('div');
-      div.className = 'link-card';
-      div.innerHTML = `
-        <div>
-          <strong>${l.name}</strong><br>
-          <small><a href="?c=${l.code}">${window.location.origin}?c=${l.code}</a></small><br>
-          <small>${l.url}</small><br>
-          <small>Views: ${l.views || 0}</small>
-        </div>
-        <button onclick="deleteLink('${l.code}')">Delete</button>
-      `;
-      list.appendChild(div);
-    });
-  }
-
-  window.deleteLink = (code) => {
-    links = links.filter(l => l.code !== code);
-    localStorage.setItem('links', JSON.stringify(links));
-    renderLinks();
-    updateStats();
-    drawCharts();
+  const options = {
+    chart: { type: 'bar', height: 260, toolbar:{ show:false }, foreColor:'#a9bfdc', background:'transparent' },
+    series: [{ name: 'Views', data: views }],
+    xaxis: { categories: names, labels:{ rotate: -20 } },
+    colors: ['#3b41f2'],
+    theme:{ mode:'dark' }
   };
 
-  function drawCharts() {
-    const totalViews = links.reduce((a,b)=>a+(b.views||0),0);
-    const viewsChart = new ApexCharts(document.querySelector("#viewsChart"), {
-      chart: { type: 'bar', height: 200, background: 'transparent', foreColor: '#ccc' },
-      series: [{ name: 'Views', data: links.map(l => l.views) }],
-      xaxis: { categories: links.map(l => l.name) },
-      colors: ['#6366f1'],
-    });
-    viewsChart.render();
+  if(chartViews) chartViews.destroy();
+  chartViews = new ApexCharts(document.querySelector('#chart_views'), options);
+  chartViews.render();
+}
 
-    const statsChart = new ApexCharts(document.querySelector("#statsChart"), {
-      chart: { type: 'radialBar', height: 200, background: 'transparent', foreColor: '#ccc' },
-      series: [links.length / maxLinks * 100, totalViews],
-      labels: ['Link Usage %', 'Total Views'],
-      colors: ['#4f46e5', '#10b981'],
+/* ========= Dashboard update ========= */
+function updateDashboard(){
+  const totalLinks = data.links.length;
+  const totalViews = data.links.reduce((sum,l)=>sum + (l.views||0), 0);
+  const suspicious = data.attempts.length;
+
+  document.getElementById('stat_links').textContent = totalLinks;
+  document.getElementById('stat_views').textContent = totalViews;
+  document.getElementById('stat_susp').textContent = suspicious;
+
+  document.getElementById('topStats').textContent = `${totalLinks} links • ${totalViews} views • ${suspicious} suspicious`;
+  renderCharts();
+}
+
+/* ========= Render My Links ========= */
+function renderLinks(){
+  const container = document.getElementById('linksContainer');
+  container.innerHTML = '';
+  if(data.links.length === 0){
+    container.innerHTML = '<div class="small muted">No links yet. Create one!</div>';
+    return;
+  }
+  data.links.forEach(l=>{
+    const el = document.createElement('div');
+    el.className = 'link-card';
+    el.innerHTML = `
+      <div style="min-width:0;">
+        <div style="font-weight:700;color:#cfe0ff;">${sanitize(l.name)}</div>
+        <div class="small muted" style="margin-top:6px;">${sanitize(l.url)}</div>
+        <div class="small muted" style="margin-top:6px;">Views: <strong style="color:#9fb2ff">${l.views||0}</strong> • Code: <code>${l.code}</code></div>
+        <div style="margin-top:8px;" class="small muted">Share: <a href="?c=${l.code}" style="color:#9fb2ff" target="_blank">${location.origin}${location.pathname}?c=${l.code}</a></div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+        <button class="nav-btn copyBtn" data-code="${l.code}" style="background:#1f2330; color:#9fb2ff; padding:8px 10px; border-radius:8px;">Copy URL</button>
+        <button class="nav-btn deleteBtn" data-code="${l.code}" style="background:#361b1b; color:#ff9b9b; padding:8px 10px; border-radius:8px;">Delete</button>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+
+  document.querySelectorAll('.copyBtn').forEach(b=>{
+    b.addEventListener('click', ()=> {
+      const code = b.dataset.code;
+      const url = `${location.origin}${location.pathname}?c=${code}`;
+      navigator.clipboard?.writeText(url).then(()=> alert('Short URL copied to clipboard.'));
     });
-    statsChart.render();
+  });
+  document.querySelectorAll('.deleteBtn').forEach(b=>{
+    b.addEventListener('click', ()=> {
+      const code = b.dataset.code;
+      if(!confirm('Delete this link?')) return;
+      data.links = data.links.filter(x=>x.code !== code);
+      saveData(data);
+      renderLinks();
+      updateDashboard();
+    });
+  });
+}
+
+/* ========= Create Link form + auto-correct URL ========= */
+const form = document.getElementById('createForm');
+const inputName = document.getElementById('inputName');
+const inputUrl = document.getElementById('inputUrl');
+const previewBtn = document.getElementById('previewBtn');
+const feedback = document.getElementById('createFeedback');
+
+function normalizeUrl(raw){
+  let s = String(raw || '').trim();
+  if(!s) return '';
+  if(!s.match(/^https?:\/\//i)) s = 'https://' + s;
+  try {
+    const u = new URL(s);
+    if(!['http:','https:'].includes(u.protocol)) return '';
+    return u.href;
+  } catch (e){
+    return '';
+  }
+}
+
+previewBtn.addEventListener('click', (ev)=>{
+  ev.preventDefault();
+  const corrected = normalizeUrl(inputUrl.value);
+  if(!corrected){
+    feedback.innerHTML = '<span style="color:#ff9b9b;">Invalid URL after correction.</span>';
+  } else {
+    feedback.innerHTML = `<span style="color:#9fb2ff;">Corrected URL: </span><span class="small muted">${sanitize(corrected)}</span>`;
+  }
+});
+
+form.addEventListener('submit', (ev)=>{
+  ev.preventDefault();
+  feedback.textContent = '';
+  const name = String(inputName.value || '').trim();
+  const rawUrl = String(inputUrl.value || '').trim();
+
+  if(!name || !rawUrl){
+    feedback.innerHTML = '<span style="color:#ff9b9b;">Please fill both fields.</span>'; return;
+  }
+  if(data.links.some(l=>l.name.toLowerCase() === name.toLowerCase())){
+    feedback.innerHTML = '<span style="color:#ff9b9b;">Short name already exists. Choose another.</span>'; return;
+  }
+  const url = normalizeUrl(rawUrl);
+  if(!url){
+    feedback.innerHTML = '<span style="color:#ff9b9b;">Invalid URL. Make sure it is a valid http(s) address.</span>'; return;
+  }
+  const code = Math.random().toString(36).slice(2,9);
+  data.links.push({ name, url, code, views: 0, created: nowISO() });
+  saveData(data);
+  feedback.innerHTML = '<span style="color:#9fb2ff;">Link created!</span>';
+  inputName.value = ''; inputUrl.value = '';
+  updateDashboard();
+  renderLinks();
+});
+
+/* ========= Redirect handling (when ?c=code present) ========= */
+function handleRedirectParam(){
+  const params = new URLSearchParams(location.search);
+  if(!params.has('c')) return false;
+  const code = params.get('c');
+  const link = data.links.find(l=>l.code === code);
+  if(!link){
+    document.body.innerHTML = `<div style="display:flex; align-items:center; justify-content:center; height:100vh; background:#07080a; color:#e6eef8;"><div class="card">Invalid or expired link.</div></div>`;
+    return true;
   }
 
-  updateStats();
-  drawCharts();
-}
-</script>
+  document.getElementById('redirectScreen').style.display = 'flex';
+  document.getElementById('rs_name').textContent = link.name;
+  document.getElementById('rs_url').textContent = link.url;
+  const progressBar = document.getElementById('rs_progress_bar');
+  const secondsText = document.getElementById('rs_seconds');
+  const rs_warn = document.getElementById('rs_bot_warn');
+  let interacted = false;
+  let countdownStarted = false;
+  let timer = null;
+  let secondsLeft = 5;
 
+  function startCountdown(force=false){
+    if(countdownStarted) return;
+    countdownStarted = true;
+    if(!interacted && !force) rs_warn.style.display = 'block';
+    else rs_warn.style.display = 'none';
+
+    progressBar.style.transition = `width ${secondsLeft}s linear`;
+    setTimeout(()=> progressBar.style.width = '100%', 30);
+
+    secondsText.textContent = `${secondsLeft} seconds remaining`;
+
+    timer = setInterval(()=>{
+      secondsLeft--;
+      if(secondsLeft <= 0){
+        clearInterval(timer);
+        if(interacted || force){
+          link.views = (link.views || 0) + 1;
+          saveData(data);
+          window.location.href = link.url;
+        } else {
+          data.attempts.push({ time: nowISO(), link: link.name, ua: navigator.userAgent });
+          saveData(data);
+          secondsText.textContent = `No interaction detected — suspicious attempt logged.`;
+          updateDashboard();
+        }
+      } else {
+        secondsText.textContent = `${secondsLeft} seconds remaining`;
+      }
+    }, 1000);
+  }
+
+  function setInteracted(){
+    interacted = true;
+    document.removeEventListener('mousemove', setInteracted);
+    document.removeEventListener('keydown', setInteracted);
+    document.removeEventListener('touchstart', setInteracted);
+    if(!countdownStarted) startCountdown(false);
+  }
+  document.addEventListener('mousemove', setInteracted);
+  document.addEventListener('keydown', setInteracted);
+  document.addEventListener('touchstart', setInteracted);
+
+  document.getElementById('rs_cancel').onclick = ()=>{
+    if(timer) clearInterval(timer);
+    data.attempts.push({ time: nowISO(), link: link.name, ua: navigator.userAgent });
+    saveData(data);
+    document.getElementById('rs_text').textContent = 'Redirect cancelled. Suspicious attempt logged.';
+    document.getElementById('rs_seconds').textContent = '';
+    progressBar.style.width = '0%';
+    updateDashboard();
+  };
+  document.getElementById('rs_force').onclick = ()=> startCountdown(true);
+
+  setTimeout(()=> {
+    if(interacted) startCountdown(false);
+    else setTimeout(()=> { if(!countdownStarted) startCountdown(false); }, 4000);
+  }, 200);
+
+  return true;
+}
+
+/* ========= Initialization ========= */
+function init(){
+  updateDashboard();
+  renderLinks();
+  renderCharts();
+
+  const handled = handleRedirectParam();
+  if(handled) return;
+}
+
+init();
+
+/* ========= Keep UI updated on storage changes (optional) ========= */
+window.addEventListener('storage', (e)=>{
+  if(e.key === STORAGE_KEY){
+    data = loadData();
+    updateDashboard();
+    renderLinks();
+    renderCharts();
+  }
+});
+</script>
 </body>
 </html>
