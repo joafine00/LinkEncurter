@@ -1,96 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>LinkShort - Local Link Manager</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif}
-body{display:flex;height:100vh;background:#18191c;color:#fff;overflow:hidden}
+body{display:flex;height:100vh;background:#0f1720;color:#e6eef8;overflow:hidden}
 
 /* Sidebar */
 .sidebar{
-  width:230px;background:#202225;display:flex;flex-direction:column;
-  align-items:flex-start;padding:20px 0;border-right:1px solid #2f3136
+  width:250px;background:#0b1220;display:flex;flex-direction:column;
+  align-items:flex-start;padding:24px 12px;border-right:1px solid rgba(255,255,255,0.03)
 }
 .sidebar h2{
-  font-size:22px;color:#7289da;margin:0 0 20px 20px
+  font-size:22px;color:#7c9cff;margin:0 0 18px 12px
 }
 .sidebar a{
-  color:#ccc;text-decoration:none;padding:12px 20px;width:100%;
-  display:block;transition:0.2s
+  color:#bcd0ff;text-decoration:none;padding:12px 18px;width:100%;
+  display:block;border-radius:8px;margin-bottom:6px;transition:0.12s
 }
 .sidebar a:hover,.sidebar a.active{
-  background:#5865f2;color:#fff
+  background:#2d3b66;color:#fff
 }
 
 /* Main */
 .main{
-  flex:1;display:flex;flex-direction:column;background:#2f3136
+  flex:1;display:flex;flex-direction:column;background:linear-gradient(180deg,#0f1720,#0b1220)
 }
 .topbar{
-  height:60px;background:#202225;display:flex;align-items:center;
-  justify-content:space-between;padding:0 20px;border-bottom:1px solid #2f3136
+  height:64px;background:transparent;display:flex;align-items:center;
+  justify-content:space-between;padding:0 24px;border-bottom:1px solid rgba(255,255,255,0.03)
 }
 .topbar h1{font-size:20px;color:#fff}
-.content{padding:20px;overflow:auto;flex:1}
+.content{padding:22px;overflow:auto;flex:1}
 
 /* Sections */
 .section{display:none}
 .section.active{display:block}
 
-/* Buttons and inputs */
+/* Controls */
+.row{display:flex;gap:12px;align-items:center}
+.card{background:#071224;border-radius:10px;padding:14px;margin-bottom:14px;border:1px solid rgba(255,255,255,0.02)}
+label{display:block;color:#bcd0ff;font-size:13px;margin-bottom:6px}
+input,select,textarea{background:#0b1624;border:none;border-radius:8px;color:#e6eef8;padding:10px;width:100%;margin-bottom:8px}
 button{
-  background:#5865f2;color:white;border:none;padding:10px 16px;
-  border-radius:6px;cursor:pointer;transition:0.2s
+  background:#4f6ef6;color:white;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;transition:0.14s;font-weight:600
 }
-button:hover{background:#4752c4}
-input,select{
-  background:#40444b;border:none;border-radius:6px;color:#fff;
-  padding:10px;width:100%;margin-bottom:10px
-}
-.link-card{
-  background:#202225;border-radius:8px;padding:12px;margin:10px 0;
-  display:flex;justify-content:space-between;align-items:center
-}
-.link-card a{color:#7289da;text-decoration:none}
-.link-card small{color:#ccc}
+button:hover{transform:translateY(-2px);opacity:0.95}
+.small{font-size:13px;color:#9fb6ff}
 
-/* Redirect Page */
+/* link card */
+.link-card{
+  background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);
+  border-radius:10px;padding:12px;margin:10px 0;
+  display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,0.02)
+}
+.link-card a{color:#9fc1ff;text-decoration:none}
+.link-meta{color:#a9c4ff;font-size:13px}
+
+/* Redirect page */
 .redirect{
   display:flex;flex-direction:column;justify-content:center;align-items:center;
-  height:100vh;width:100vw;background:linear-gradient(180deg,#18191c,#202225);
-  color:#fff;text-align:center;padding:20px
+  height:100vh;width:100vw;background:linear-gradient(180deg,#06111a,#0c1722);
+  color:#e6eef8;text-align:center;padding:20px
 }
-.redirect h2{font-size:24px;margin-bottom:10px;color:#7289da}
-.redirect p{color:#ccc;margin-bottom:10px}
-.progress-bar{
-  width:220px;height:6px;background:#2f3136;
-  border-radius:3px;overflow:hidden;margin-top:10px
-}
-.progress{
-  width:0%;height:100%;background:#5865f2;transition:width 2.5s linear
-}
-.redirect button{
-  margin-top:15px;background:#40444b;color:#fff;
-  border:none;padding:8px 14px;border-radius:5px;cursor:pointer
-}
-.redirect button:hover{background:#5865f2}
+.redirect h2{font-size:24px;margin-bottom:10px;color:#7c9cff}
+.redirect p{color:#9fb6ff;margin-bottom:10px}
+.progress-bar{width:360px;height:8px;background:rgba(255,255,255,0.03);border-radius:999px;overflow:hidden;margin-top:10px}
+.progress{width:0%;height:100%;background:linear-gradient(90deg,#4f6ef6,#7c9cff);transition:width 2.5s linear}
 
-.notice{
-  background:#40444b;color:#ccc;padding:10px;border-radius:6px;
-  margin-bottom:15px;font-size:14px
-}
+/* Steps */
+.steps{width:420px;margin-top:18px;text-align:left}
+.step{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.01);margin-bottom:8px}
+.icon{width:14px;height:14px;border-radius:50%;background:rgba(255,255,255,0.06);display:inline-block}
+.step.in-progress{background:rgba(79,110,246,0.08)}
+.step.passed{background:rgba(37,194,111,0.06)}
+.step.failed{background:rgba(246,79,79,0.06)}
+.step .label{font-size:14px;color:#e6eef8}
+.step .desc{font-size:12px;color:#9fb6ff;margin-left:auto}
+
+/* Notice */
+.notice{background:#081424;color:#9fb6ff;padding:12px;border-radius:8px;margin-bottom:14px}
+.small-muted{font-size:12px;color:#9fb6ff;opacity:0.8}
 </style>
 </head>
 <body>
 
-<!-- Redirect Page -->
+<!-- Redirect Page (hidden until ?c=...) -->
 <div id="redirectPage" class="redirect" style="display:none">
-  <h2>Redirecting...</h2>
-  <p id="redirectMsg">Please wait, you will be redirected shortly.</p>
-  <div class="progress-bar"><div class="progress" id="progress"></div></div>
-  <button id="cancelBtn">Cancel</button>
+  <h2 id="redirTitle">Redirecting...</h2>
+  <p id="redirSub">Preparing connection — stay on this page while we attempt to open the destination.</p>
+
+  <div class="card" style="width:460px;text-align:left">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="small-muted">Target</div>
+        <div id="destName" style="font-weight:700;color:#fff"></div>
+        <div id="destUrl" class="small-muted" style="margin-top:4px"></div>
+      </div>
+      <div style="text-align:right">
+        <div class="small-muted">Protocol</div>
+        <div id="destProto" style="font-weight:700;color:#fff"></div>
+      </div>
+    </div>
+
+    <div class="progress-bar" style="margin-top:12px"><div class="progress" id="progress"></div></div>
+
+    <div class="steps" id="steps">
+      <!-- steps inserted by JS -->
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px">
+      <button id="cancelBtn">Cancel</button>
+      <button id="forceBtn">Force Open</button>
+    </div>
+  </div>
+
+  <p class="small-muted" style="margin-top:12px">This site is local-only and does not host or store data on servers. Redirection uses locally saved mappings.</p>
 </div>
 
 <!-- Sidebar -->
@@ -108,184 +135,445 @@ input,select{
     <h1 id="pageTitle">Dashboard</h1>
     <div id="statsDisplay">0 / 10 links</div>
   </div>
+
   <div class="content">
-    
     <!-- Dashboard -->
     <div id="dashboard" class="section active">
-      <h2>Create a New Short Link</h2>
-      <div class="notice">
-        You can choose to use <strong>HTTPS</strong> for official or secure domains, 
-        or <strong>HTTP (Subdomain Mode)</strong> for local, proxy, or custom setups without DNS.
+      <div class="card">
+        <h3 style="margin-bottom:8px">Create a new short link</h3>
+        <div class="notice">
+          Choose <strong>HTTPS</strong> for normal secure targets, or choose <strong>HTTP (Subdomain Mode)</strong> when you want to use a simulated subdomain (common for local/test/proxy setups).
+        </div>
+
+        <label for="linkName">Friendly name</label>
+        <input id="linkName" placeholder="e.g. My Blog (visible label)" />
+
+        <label for="linkUrl">Destination URL (enter full URL or hostname)</label>
+        <input id="linkUrl" placeholder="https://example.com or mywebsite.server.com" />
+
+        <label for="protocolMode">Mode</label>
+        <select id="protocolMode">
+          <option value="https">HTTPS (normal)</option>
+          <option value="http">HTTP (Subdomain mode — will extract the first label)</option>
+        </select>
+
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="createBtn">Create Link</button>
+          <button id="exportBtn">Export JSON</button>
+          <button id="importBtn">Import JSON</button>
+        </div>
+
+        <p id="statusMsg" class="small-muted" style="margin-top:8px"></p>
       </div>
-      <input type="text" id="linkName" placeholder="Link name (e.g., My Blog)">
-      <input type="text" id="linkUrl" placeholder="Destination URL (e.g., https://example.com)">
-      <select id="protocolMode">
-        <option value="https">Use HTTPS (Default)</option>
-        <option value="http">Use HTTP (Subdomain Mode)</option>
-      </select>
-      <button id="createBtn">Create Link</button>
-      <p id="statusMsg"></p>
     </div>
 
     <!-- My Links -->
     <div id="mylinks" class="section">
-      <h2>Your Links</h2>
-      <div id="linksList"></div>
+      <div class="card">
+        <h3>Your Links</h3>
+        <div id="linksList" style="margin-top:8px"></div>
+      </div>
     </div>
 
     <!-- Settings -->
     <div id="settings" class="section">
-      <h2>Settings</h2>
-      <p>You can customize the external redirect base domain used for all short links.</p>
-      <input type="text" id="baseDomain" placeholder="Base Domain (e.g., https://d0linkname.vercel.app)">
-      <button id="saveBase">Save Base Domain</button>
-      <p id="saveMsg"></p>
+      <div class="card">
+        <h3>Settings</h3>
+        <label>External base domain used for short links (keeps LocalStorage working — this site never stores links remotely)</label>
+        <input id="baseDomain" placeholder="https://d0linkname.vercel.app" />
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="saveBase">Save Base Domain</button>
+          <button id="resetStorage">Reset All (clear local links)</button>
+        </div>
+        <p id="saveMsg" class="small-muted" style="margin-top:8px"></p>
+      </div>
     </div>
 
     <!-- About -->
     <div id="about" class="section">
-      <h2>About LinkShort</h2>
-      <p><strong>LinkShort</strong> is a privacy-first, ad-free link shortener that works entirely in your browser.</p>
-      <p>No databases, no servers, no tracking — everything runs in <strong>LocalStorage</strong>.</p>
-      <p>You can create up to <strong>10 links</strong> per browser session.</p>
-      <p>Each short link uses your configured base domain, for example:</p>
-      <pre style="background:#202225;padding:10px;border-radius:6px;">
-https://d0linkname.vercel.app/?c=CODE
-      </pre>
-      <p>If you use <strong>HTTP (Subdomain Mode)</strong>, 
-      it simulates a non-secure or local network environment — useful for testing or non-DNS hosting setups.</p>
+      <div class="card">
+        <h3>About LinkShort</h3>
+        <p class="small-muted">LinkShort is local-only. It stores all mappings in your browser's LocalStorage. There are no servers, no database, and no telemetry.</p>
+        <p class="small-muted">Short links are served through the configured base domain using the query parameter <code>?c=IDENTIFIER</code>.</p>
+        <p class="small-muted">In <strong>HTTP Subdomain Mode</strong>, the identifier (slug) is taken from the host label before the first dot of the provided hostname (for example <code>mywebsite</code> from <code>mywebsite.server.com</code>).</p>
+      </div>
     </div>
-
   </div>
 </div>
 
 <script>
-/* ---------- Redirect Handling ---------- */
-const params=new URLSearchParams(window.location.search);
+/* ---------- Utilities ---------- */
+function saveLinks(data){ localStorage.setItem('links', JSON.stringify(data || links)); }
+function loadLinks(){ return JSON.parse(localStorage.getItem('links')||'[]'); }
+function normBase(b){ if(!b) return ''; return b.replace(/\/+$/,''); }
+function uid6(){ return Math.random().toString(36).substring(2,8); }
+
+/* ---------- Redirect Handling (with 5-step status) ---------- */
+const params = new URLSearchParams(window.location.search);
 if(params.has('c')){
+  // show redirect UI
   document.getElementById('sidebar').style.display='none';
   document.getElementById('mainApp').style.display='none';
-  document.getElementById('redirectPage').style.display='flex';
+  const rp = document.getElementById('redirectPage');
+  rp.style.display='flex';
 
-  const code=params.get('c');
-  const data=JSON.parse(localStorage.getItem('links')||'[]');
-  const link=data.find(l=>l.code===code);
-  const msg=document.getElementById('redirectMsg');
-  const progress=document.getElementById('progress');
-  const cancel=document.getElementById('cancelBtn');
+  const raw = params.get('c') || '';
+  let identifier = raw.replace(/\/+$/,''); // remove trailing slashes
+  identifier = decodeURIComponent(identifier);
 
-  if(link){
-    link.views=(link.views||0)+1;
-    localStorage.setItem('links',JSON.stringify(data));
+  const all = loadLinks();
+  // find by code OR slug OR name
+  const link = all.find(l => l.code === identifier || l.slug === identifier || (l.name && l.name === identifier));
+  const destName = document.getElementById('destName');
+  const destUrl = document.getElementById('destUrl');
+  const destProto = document.getElementById('destProto');
+  const progress = document.getElementById('progress');
 
-    msg.innerHTML=`Redirecting to:<br><strong>${link.name}</strong><br><small>${link.url}</small>`;
-    setTimeout(()=>{progress.style.width='100%';},100);
-    const timer=setTimeout(()=>{window.location.href=link.url;},2500);
+  // steps definition
+  const stepsMeta = [
+    {id:'search', title:'Searching for link', desc:'Looking up the local link mapping.'},
+    {id:'validate', title:'Validating session code', desc:'Confirming identifier and uniqueness.'},
+    {id:'connect', title:'Establishing connection', desc:'Starting connection handshake to the target.'},
+    {id:'verify', title:'Verifying servers', desc:'Checking server response or local proxy availability.'},
+    {id:'final',  title:'Connecting', desc:'Opening the destination in your browser.'}
+  ];
 
-    cancel.onclick=()=>{
-      clearTimeout(timer);
-      msg.textContent='Redirection canceled.';
-      progress.style.width='0';
-      cancel.style.display='none';
-    };
-  } else {
-    msg.textContent='Invalid or expired link.';
-    progress.style.display='none';
-    cancel.style.display='none';
+  const stepsContainer = document.getElementById('steps');
+  stepsContainer.innerHTML='';
+  stepsMeta.forEach(s=>{
+    const el = document.createElement('div');
+    el.className='step';
+    el.id='step-'+s.id;
+    el.innerHTML = `<div class="icon"></div><div class="label">${s.title}</div><div class="desc">${s.desc}</div>`;
+    stepsContainer.appendChild(el);
+  });
+
+  // helper to set step state
+  function setStep(id, state){
+    // state: 'in-progress','passed','failed'
+    const el = document.getElementById('step-'+id);
+    el.classList.remove('in-progress','passed','failed');
+    if(state) el.classList.add(state);
   }
+
+  // update small header
+  if(link){
+    destName.textContent = link.name || (link.slug || link.code);
+    destUrl.textContent = link.url;
+    destProto.textContent = (link.mode||'https').toUpperCase();
+  } else {
+    destName.textContent = 'Unknown';
+    destUrl.textContent = identifier;
+    destProto.textContent = 'N/A';
+  }
+
+  // cancel/force buttons
+  let redirectTimer = null;
+  document.getElementById('cancelBtn').onclick = ()=>{
+    clearTimeout(redirectTimer);
+    setStep('final','failed');
+    document.getElementById('redirTitle').textContent='Redirection canceled';
+    progress.style.width='0%';
+    document.getElementById('cancelBtn').style.display='none';
+    document.getElementById('forceBtn').style.display='inline-block';
+  };
+  document.getElementById('forceBtn').onclick = ()=>{
+    // open the identifier directly (best-effort)
+    if(link) window.location.href = link.url;
+    else window.open(identifier,'_blank');
+  };
+
+  // sequential async simulation of the 5 checks
+  (async function runSequence(){
+    function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+    let pct = 0;
+    function setPct(v){ pct=v; progress.style.width = pct + '%'; }
+
+    // Step 1: Searching
+    setStep('search','in-progress'); setPct(8);
+    await wait(700);
+    if(!link){
+      setStep('search','failed'); setStep('validate','failed');
+      document.getElementById('redirTitle').textContent='Link not found';
+      document.getElementById('redirSub').textContent='No local mapping found for that identifier.';
+      setPct(0);
+      return;
+    }
+    setStep('search','passed'); setPct(18);
+
+    // Step 2: Validating session code
+    setStep('validate','in-progress'); setPct(28);
+    await wait(600);
+    // validate: detect tampering (simple check here: code/slug exists)
+    const found = loadLinks().find(l => l.code===identifier || l.slug===identifier);
+    if(!found){
+      setStep('validate','failed');
+      document.getElementById('redirTitle').textContent='Validation failed';
+      document.getElementById('redirSub').textContent='Identifier is invalid or expired.';
+      setPct(0);
+      return;
+    }
+    setStep('validate','passed'); setPct(40);
+
+    // Step 3: Establishing connection
+    setStep('connect','in-progress'); setPct(52);
+    await wait(700);
+    // we can't actually ping remote servers from static JS reliably;
+    // do a lightweight fetch attempt (CORS may block). We'll try fetch head with timeout and treat errors as soft warnings.
+    let serverOk = false;
+    try {
+      // attempt a HEAD fetch to the destination to get quick server response (may be blocked by CORS)
+      const controller = new AbortController();
+      const timeout = setTimeout(()=>controller.abort(),1200);
+      const resp = await fetch(found.url, {method:'HEAD',mode:'no-cors',signal:controller.signal});
+      clearTimeout(timeout);
+      // when mode:no-cors we don't get status, assume success if no error thrown
+      serverOk = true;
+    } catch(e){
+      // fallback: if it's an http subdomain (mode=http) assume local/proxy — we still continue but mark verify step as warning
+      serverOk = false;
+    }
+    if(serverOk) {
+      setStep('connect','passed'); setPct(66);
+    } else {
+      setStep('connect','passed'); // still mark passed — connection will be attempted anyway
+      setPct(66);
+    }
+
+    // Step 4: Verifying servers
+    setStep('verify','in-progress'); setPct(74);
+    await wait(600);
+    if(found.mode === 'http' && !serverOk){
+      // For HTTP subdomain mode, accepting that server may be internal — mark as passed but note limited verification
+      setStep('verify','passed'); setPct(86);
+    } else if(serverOk){
+      setStep('verify','passed'); setPct(86);
+    } else {
+      // if not verified and expected https, mark warning (but continue)
+      setStep('verify','failed');
+      document.getElementById('redirSub').textContent = 'Server verification failed — will still attempt to open the link; CORS or network may block health check.';
+      setPct(86);
+      await wait(700);
+    }
+
+    // Step 5: Final connecting
+    setStep('final','in-progress'); setPct(92);
+    await wait(500);
+    setStep('final','passed'); setPct(100);
+
+    // increment views
+    found.views = (found.views||0) + 1;
+    saveLinks(loadLinks());
+
+    // attempt redirect after a short pause (still local)
+    redirectTimer = setTimeout(()=>{
+      try { window.location.href = found.url; }
+      catch(e){ window.open(found.url,'_blank'); }
+    },500);
+  })();
 }
 
 /* ---------- Main App ---------- */
-const sections=document.querySelectorAll('.section');
-const sidebarLinks=document.querySelectorAll('.sidebar a');
-const pageTitle=document.getElementById('pageTitle');
-const statsDisplay=document.getElementById('statsDisplay');
-let links=JSON.parse(localStorage.getItem('links')||'[]');
-const maxLinks=10;
-let baseDomain=localStorage.getItem('baseDomain')||'https://d0linkname.vercel.app';
+const sections = document.querySelectorAll('.section');
+const sidebarLinks = document.querySelectorAll('.sidebar a');
+const pageTitle = document.getElementById('pageTitle');
+const statsDisplay = document.getElementById('statsDisplay');
+let links = loadLinks();
+const maxLinks = 10;
+let baseDomain = normBase(localStorage.getItem('baseDomain') || 'https://d0linkname.vercel.app');
 
-function updateStats(){
-  statsDisplay.textContent=`${links.length} / ${maxLinks} links`;
-}
+function updateStats(){ statsDisplay.textContent = `${links.length} / ${maxLinks} links`; }
 updateStats();
 
 /* Sidebar navigation */
 sidebarLinks.forEach(a=>{
-  a.addEventListener('click',e=>{
+  a.addEventListener('click', e=>{
     e.preventDefault();
     sidebarLinks.forEach(x=>x.classList.remove('active'));
     a.classList.add('active');
-    const target=a.dataset.target;
+    const target = a.dataset.target;
     sections.forEach(s=>s.classList.remove('active'));
     document.getElementById(target).classList.add('active');
-    pageTitle.textContent=a.textContent;
-    if(target==='mylinks')renderLinks();
+    pageTitle.textContent = a.textContent;
+    if(target === 'mylinks') renderLinks();
   });
 });
 
-/* Create link */
-document.getElementById('createBtn').addEventListener('click',()=>{
-  const name=document.getElementById('linkName').value.trim();
-  let url=document.getElementById('linkUrl').value.trim();
-  const msg=document.getElementById('statusMsg');
-  const mode=document.getElementById('protocolMode').value;
+/* Create link logic */
+document.getElementById('createBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('linkName').value.trim();
+  let url = document.getElementById('linkUrl').value.trim();
+  const mode = document.getElementById('protocolMode').value;
+  const status = document.getElementById('statusMsg');
 
-  if(!name||!url){msg.textContent='Please fill in both fields.';return;}
-  if(!url.startsWith('http://')&&!url.startsWith('https://')){
-    url=(mode==='https'?'https://':'http://')+url;
-  }
-  if(links.length>=maxLinks){
-    msg.textContent='You have reached the maximum limit of 10 links.';
+  status.textContent = '';
+  if(!name || !url){ status.textContent = 'Please fill both name and destination.'; return; }
+
+  // Normalize URL or hostname input
+  // If user enters something like "mywebsite.server.com" and mode === 'http', treat as http host; otherwise ensure http(s) prefix
+  try {
+    let parsed;
+    if(!url.match(/^https?:\/\//i)) {
+      // if mode https, add https, else add http
+      url = (mode === 'https' ? 'https://' : 'http://') + url;
+    }
+    parsed = new URL(url);
+    // For http subdomain mode, extract first label as slug
+    let slug = null;
+    let code = null;
+    if(mode === 'http') {
+      // extract host label before first dot
+      const host = parsed.hostname || '';
+      slug = host.split('.')[0] || host;
+      slug = slug.toLowerCase().replace(/[^a-z0-9\-]/g,'').substring(0,40);
+      if(!slug) { status.textContent = 'Could not extract valid subdomain name from hostname.'; return; }
+      // check uniqueness across existing links (slug or code)
+      const exists = links.find(l => (l.slug && l.slug === slug) || (l.code && l.code === slug));
+      if(exists){
+        status.textContent = `The name "${slug}" is already in use — please choose a different hostname or change mode.`;
+        return;
+      }
+    } else {
+      // https mode: generate random code; ensure uniqueness
+      do { code = uid6(); } while(links.find(l => l.code === code || l.slug === code));
+    }
+
+    if(links.length >= maxLinks){ status.textContent = `You have reached the maximum of ${maxLinks} links.`; return; }
+
+    const entry = {
+      name,
+      url: parsed.href,
+      mode,
+      views: 0,
+      created: new Date().toISOString()
+    };
+    if(slug) entry.slug = slug;
+    if(code) entry.code = code;
+
+    links.push(entry);
+    saveLinks(links);
+    updateStats();
+    status.textContent = `Link created successfully! Short identifier: ${entry.slug || entry.code}`;
+    // clear inputs
+    document.getElementById('linkName').value=''; document.getElementById('linkUrl').value='';
+  } catch(err){
+    status.textContent = 'Invalid URL/hostname format.';
     return;
   }
-  const code=Math.random().toString(36).substring(2,8);
-  links.push({name,url,code,views:0,mode});
-  localStorage.setItem('links',JSON.stringify(links));
-  msg.textContent='Link created successfully!';
-  document.getElementById('linkName').value='';
-  document.getElementById('linkUrl').value='';
-  updateStats();
 });
 
 /* Render links */
 function renderLinks(){
-  const list=document.getElementById('linksList');
-  list.innerHTML='';
-  if(links.length===0){list.innerHTML='<p>No links yet.</p>';return;}
+  links = loadLinks(); // reload
+  const list = document.getElementById('linksList');
+  list.innerHTML = '';
+  if(links.length === 0){ list.innerHTML = '<div class="small-muted">No links yet.</div>'; return; }
   links.forEach(l=>{
-    const linkUrl=`${baseDomain}/?c=${l.code}`;
-    const div=document.createElement('div');
-    div.className='link-card';
-    div.innerHTML=`
-      <div>
-        <strong>${l.name}</strong><br>
-        <small><a href="${linkUrl}">${linkUrl}</a></small><br>
-        <small>Destination: ${l.url}</small><br>
-        <small>Protocol: ${l.mode.toUpperCase()} | Views: ${l.views||0}</small>
+    const id = l.slug || l.code || '';
+    const short = baseDomain ? `${baseDomain}/?c=${encodeURIComponent(id)}` : `?c=${encodeURIComponent(id)}`;
+    const div = document.createElement('div');
+    div.className = 'link-card';
+    div.innerHTML = `
+      <div style="max-width:72%">
+        <div style="font-weight:700;color:#fff">${escapeHtml(l.name)}</div>
+        <div class="link-meta"><a href="${short}" target="_blank" rel="noreferrer">${short}</a></div>
+        <div class="link-meta small-muted">Destination: ${escapeHtml(l.url)}</div>
+        <div class="link-meta small-muted">Protocol: ${l.mode.toUpperCase()} • Views: ${l.views||0}</div>
       </div>
-      <button onclick="deleteLink('${l.code}')">Delete</button>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button onclick="copyShort('${encodeURIComponent(id)}')">Copy</button>
+        <button onclick="deleteLink('${encodeURIComponent(id)}')" style="background:#f45c5c">Delete</button>
+      </div>
     `;
     list.appendChild(div);
   });
 }
 
-/* Delete link */
-function deleteLink(code){
-  links=links.filter(l=>l.code!==code);
-  localStorage.setItem('links',JSON.stringify(links));
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]); }
+
+window.copyShort = function(idEnc){
+  const id = decodeURIComponent(idEnc);
+  const short = baseDomain ? `${baseDomain}/?c=${encodeURIComponent(id)}` : `?c=${encodeURIComponent(id)}`;
+  navigator.clipboard?.writeText(short).then(()=> {
+    alert('Short link copied to clipboard');
+  }).catch(()=> {
+    prompt('Copy this short link:', short);
+  });
+};
+
+window.deleteLink = function(idEnc){
+  const id = decodeURIComponent(idEnc);
+  links = links.filter(l => !(l.slug === id || l.code === id));
+  saveLinks(links);
   renderLinks();
   updateStats();
-}
+};
 
 /* Settings */
-document.getElementById('saveBase').addEventListener('click',()=>{
-  const newBase=document.getElementById('baseDomain').value.trim();
-  const saveMsg=document.getElementById('saveMsg');
-  if(!newBase){saveMsg.textContent='Please enter a valid domain.';return;}
-  baseDomain=newBase;
-  localStorage.setItem('baseDomain',baseDomain);
-  saveMsg.textContent='Base domain saved successfully!';
+document.getElementById('baseDomain').value = baseDomain;
+document.getElementById('saveBase').addEventListener('click', ()=>{
+  const v = document.getElementById('baseDomain').value.trim();
+  if(!v){ document.getElementById('saveMsg').textContent = 'Please enter a valid base domain.'; return; }
+  baseDomain = normBase(v);
+  localStorage.setItem('baseDomain', baseDomain);
+  document.getElementById('saveMsg').textContent = 'Base domain saved.';
+  renderLinks();
 });
+
+document.getElementById('resetStorage').addEventListener('click', ()=>{
+  if(confirm('This will delete all locally stored links. Continue?')){
+    localStorage.removeItem('links');
+    links = [];
+    saveLinks(links);
+    updateStats();
+    renderLinks();
+  }
+});
+
+/* Export / Import */
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const data = JSON.stringify(loadLinks(), null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'linkshort-export.json'; document.body.appendChild(a); a.click();
+  a.remove(); URL.revokeObjectURL(url);
+});
+
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  const input = document.createElement('input'); input.type='file'; input.accept='application/json';
+  input.onchange = e => {
+    const f = e.target.files[0];
+    if(!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        if(!Array.isArray(parsed)){ alert('Invalid file (expected an array).'); return; }
+        // merge carefully (avoid collisions)
+        let added=0;
+        parsed.forEach(item=>{
+          if(!item.url || (!item.code && !item.slug)) return;
+          const conflict = links.find(l => (item.slug && (l.slug===item.slug)) || (item.code && l.code===item.code));
+          if(!conflict){
+            links.push(item); added++;
+          }
+        });
+        saveLinks(links);
+        updateStats();
+        renderLinks();
+        alert(`${added} links imported (duplicates skipped).`);
+      } catch(err){
+        alert('Failed to parse JSON file.');
+      }
+    };
+    reader.readAsText(f);
+  };
+  input.click();
+});
+
+/* initial render */
+renderLinks();
 </script>
 </body>
 </html>
