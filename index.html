@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LinkShort - Dashboard</title>
+<title>LinkShort - Local Link Manager</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif}
 body{display:flex;height:100vh;background:#18191c;color:#fff;overflow:hidden}
@@ -45,7 +45,7 @@ button{
   border-radius:6px;cursor:pointer;transition:0.2s
 }
 button:hover{background:#4752c4}
-input{
+input,select{
   background:#40444b;border:none;border-radius:6px;color:#fff;
   padding:10px;width:100%;margin-bottom:10px
 }
@@ -56,7 +56,7 @@ input{
 .link-card a{color:#7289da;text-decoration:none}
 .link-card small{color:#ccc}
 
-/* Redirect */
+/* Redirect Page */
 .redirect{
   display:flex;flex-direction:column;justify-content:center;align-items:center;
   height:100vh;width:100vw;background:linear-gradient(180deg,#18191c,#202225);
@@ -76,6 +76,11 @@ input{
   border:none;padding:8px 14px;border-radius:5px;cursor:pointer
 }
 .redirect button:hover{background:#5865f2}
+
+.notice{
+  background:#40444b;color:#ccc;padding:10px;border-radius:6px;
+  margin-bottom:15px;font-size:14px
+}
 </style>
 </head>
 <body>
@@ -93,6 +98,7 @@ input{
   <h2>LinkShort</h2>
   <a href="#" class="active" data-target="dashboard">Dashboard</a>
   <a href="#" data-target="mylinks">My Links</a>
+  <a href="#" data-target="settings">Settings</a>
   <a href="#" data-target="about">About</a>
 </div>
 
@@ -106,9 +112,17 @@ input{
     
     <!-- Dashboard -->
     <div id="dashboard" class="section active">
-      <h2>Create a new short link</h2>
-      <input type="text" id="linkName" placeholder="Enter link name">
-      <input type="text" id="linkUrl" placeholder="Enter destination URL (https://example.com)">
+      <h2>Create a New Short Link</h2>
+      <div class="notice">
+        You can choose to use <strong>HTTPS</strong> for official or secure domains, 
+        or <strong>HTTP (Subdomain Mode)</strong> for local, proxy, or custom setups without DNS.
+      </div>
+      <input type="text" id="linkName" placeholder="Link name (e.g., My Blog)">
+      <input type="text" id="linkUrl" placeholder="Destination URL (e.g., https://example.com)">
+      <select id="protocolMode">
+        <option value="https">Use HTTPS (Default)</option>
+        <option value="http">Use HTTP (Subdomain Mode)</option>
+      </select>
       <button id="createBtn">Create Link</button>
       <p id="statusMsg"></p>
     </div>
@@ -119,13 +133,27 @@ input{
       <div id="linksList"></div>
     </div>
 
+    <!-- Settings -->
+    <div id="settings" class="section">
+      <h2>Settings</h2>
+      <p>You can customize the external redirect base domain used for all short links.</p>
+      <input type="text" id="baseDomain" placeholder="Base Domain (e.g., https://d0linkname.vercel.app)">
+      <button id="saveBase">Save Base Domain</button>
+      <p id="saveMsg"></p>
+    </div>
+
     <!-- About -->
     <div id="about" class="section">
       <h2>About LinkShort</h2>
-      <p>LinkShort is a privacy-first, ad-free link shortener that works entirely in your browser using LocalStorage.</p>
-      <p>No servers, no tracking — everything is stored locally on your device.</p>
-      <p>You can create up to <strong>10 links</strong> per browser account.</p>
-      <p>All your links and view counts are stored privately and securely inside your browser’s storage.</p>
+      <p><strong>LinkShort</strong> is a privacy-first, ad-free link shortener that works entirely in your browser.</p>
+      <p>No databases, no servers, no tracking — everything runs in <strong>LocalStorage</strong>.</p>
+      <p>You can create up to <strong>10 links</strong> per browser session.</p>
+      <p>Each short link uses your configured base domain, for example:</p>
+      <pre style="background:#202225;padding:10px;border-radius:6px;">
+https://d0linkname.vercel.app/?c=CODE
+      </pre>
+      <p>If you use <strong>HTTP (Subdomain Mode)</strong>, 
+      it simulates a non-secure or local network environment — useful for testing or non-DNS hosting setups.</p>
     </div>
 
   </div>
@@ -174,6 +202,7 @@ const pageTitle=document.getElementById('pageTitle');
 const statsDisplay=document.getElementById('statsDisplay');
 let links=JSON.parse(localStorage.getItem('links')||'[]');
 const maxLinks=10;
+let baseDomain=localStorage.getItem('baseDomain')||'https://d0linkname.vercel.app';
 
 function updateStats(){
   statsDisplay.textContent=`${links.length} / ${maxLinks} links`;
@@ -199,17 +228,18 @@ document.getElementById('createBtn').addEventListener('click',()=>{
   const name=document.getElementById('linkName').value.trim();
   let url=document.getElementById('linkUrl').value.trim();
   const msg=document.getElementById('statusMsg');
+  const mode=document.getElementById('protocolMode').value;
 
   if(!name||!url){msg.textContent='Please fill in both fields.';return;}
   if(!url.startsWith('http://')&&!url.startsWith('https://')){
-    url='https://'+url;
+    url=(mode==='https'?'https://':'http://')+url;
   }
   if(links.length>=maxLinks){
     msg.textContent='You have reached the maximum limit of 10 links.';
     return;
   }
   const code=Math.random().toString(36).substring(2,8);
-  links.push({name,url,code,views:0});
+  links.push({name,url,code,views:0,mode});
   localStorage.setItem('links',JSON.stringify(links));
   msg.textContent='Link created successfully!';
   document.getElementById('linkName').value='';
@@ -223,14 +253,15 @@ function renderLinks(){
   list.innerHTML='';
   if(links.length===0){list.innerHTML='<p>No links yet.</p>';return;}
   links.forEach(l=>{
+    const linkUrl=`${baseDomain}/?c=${l.code}`;
     const div=document.createElement('div');
     div.className='link-card';
     div.innerHTML=`
       <div>
         <strong>${l.name}</strong><br>
-        <small><a href="?c=${l.code}">${window.location.origin}?c=${l.code}</a></small><br>
-        <small>${l.url}</small><br>
-        <small>Views: ${l.views||0}</small>
+        <small><a href="${linkUrl}">${linkUrl}</a></small><br>
+        <small>Destination: ${l.url}</small><br>
+        <small>Protocol: ${l.mode.toUpperCase()} | Views: ${l.views||0}</small>
       </div>
       <button onclick="deleteLink('${l.code}')">Delete</button>
     `;
@@ -245,6 +276,16 @@ function deleteLink(code){
   renderLinks();
   updateStats();
 }
+
+/* Settings */
+document.getElementById('saveBase').addEventListener('click',()=>{
+  const newBase=document.getElementById('baseDomain').value.trim();
+  const saveMsg=document.getElementById('saveMsg');
+  if(!newBase){saveMsg.textContent='Please enter a valid domain.';return;}
+  baseDomain=newBase;
+  localStorage.setItem('baseDomain',baseDomain);
+  saveMsg.textContent='Base domain saved successfully!';
+});
 </script>
 </body>
 </html>
